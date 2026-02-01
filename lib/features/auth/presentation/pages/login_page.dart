@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/providers/providers.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -30,13 +33,47 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
     
-    // TODO: Implement Firebase Auth
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await ref.read(authNotifierProvider.notifier).signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      // Router will handle navigation based on auth state
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
     
-    setState(() => _isLoading = false);
-    
-    if (mounted) {
-      context.go('/');
+    try {
+      await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+      // Router will handle navigation based on auth state
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
     }
   }
 
@@ -127,9 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to forgot password
-                    },
+                    onPressed: () => context.go('/forgot-password'),
                     child: const Text(AppStrings.forgotPassword),
                   ),
                 ),
@@ -162,10 +197,9 @@ class _LoginPageState extends State<LoginPage> {
                 // Social Login Buttons
                 CustomButton(
                   text: AppStrings.continueWithGoogle,
-                  onPressed: () {
-                    // TODO: Implement Google Sign In
-                  },
+                  onPressed: _loginWithGoogle,
                   isOutlined: true,
+                  isLoading: _isGoogleLoading,
                   icon: Icons.g_mobiledata,
                 ),
                 const SizedBox(height: 12),

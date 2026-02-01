@@ -15,6 +15,8 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/notifications_settings_page.dart';
 import '../../features/settings/presentation/pages/export_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
+import '../../features/splits/presentation/pages/balances_page.dart';
+import '../../features/splits/presentation/pages/persons_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -137,6 +139,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'export',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ExportPage(),
+      ),
+      GoRoute(
+        path: '/balances',
+        name: 'balances',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BalancesPage(),
+      ),
+      GoRoute(
+        path: '/persons',
+        name: 'persons',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PersonsPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

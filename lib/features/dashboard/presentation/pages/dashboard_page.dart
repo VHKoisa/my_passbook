@@ -241,10 +241,10 @@ class _QuickActions extends StatelessWidget {
           onTap: () => context.push('/add-transaction?type=expense'),
         ),
         _QuickActionButton(
-          icon: Icons.swap_horiz,
-          label: 'Transfer',
+          icon: Icons.call_split,
+          label: 'Splits',
           color: AppColors.info,
-          onTap: () {},
+          onTap: () => context.push('/balances'),
         ),
         _QuickActionButton(
           icon: Icons.account_balance_wallet,

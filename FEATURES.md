@@ -77,6 +77,49 @@
 - [x] Change password dialog
 - [x] Logout with confirmation
 
+### Category Management (Completed)
+- [x] Create default categories on first login
+- [x] Add custom categories
+- [x] Edit category (name, icon, color)
+- [x] Delete category (with reassignment option)
+- [x] Category icons picker (72+ icons)
+- [x] Category color picker (24 colors)
+- [x] Separate categories for income/expense
+
+### Offline Support
+- [x] Cache transactions locally with Hive
+- [x] Cache categories locally
+- [x] Cache budgets locally
+- [x] Connectivity monitoring
+- [x] Offline banner notification
+- [x] Auto-sync when online
+
+### Notifications
+- [x] Budget alerts (configurable threshold)
+- [x] Daily expense reminder
+- [x] Bill payment reminders (custom schedule)
+- [x] Notification settings page
+- [x] Enable/disable individual notification types
+
+### Data Export
+- [x] Export transactions to CSV
+- [x] Export transactions to PDF
+- [x] Date range selection for export
+- [x] Transaction preview before export
+- [x] Share exported files
+
+### Split Transactions
+- [x] Split expense between multiple people
+- [x] Track who paid for split transactions
+- [x] Equal or custom split amounts
+- [x] Save friends/contacts for reuse
+- [x] Add/edit/delete friends
+- [x] View balances page (who owes whom)
+- [x] Settle up functionality with friends
+- [x] Net balance calculation (overall)
+- [x] Split indicator in transaction list
+- [x] Only user's share counts toward expenses
+
 ---
 
 ## 📋 To Be Implemented
@@ -87,14 +130,8 @@
 - [ ] Attach receipt/image to transaction
 - [ ] Recurring transactions
 
-### Category Management
-- [ ] Create default categories on first login
-- [ ] Add custom categories
-- [ ] Edit category (name, icon, color)
-- [ ] Delete category (with reassignment option)
-- [ ] Category icons picker
-- [ ] Category color picker
-- [ ] Separate categories for income/expense
+### Category Management (Advanced)
+- [ ] Category reordering
 
 ### Budget Management (Advanced)
 - [ ] Set category-wise budgets

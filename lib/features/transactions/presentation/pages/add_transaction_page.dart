@@ -9,6 +9,7 @@ import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../../shared/models/models.dart';
+import '../../../splits/presentation/widgets/split_transaction_widget.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   final String? initialType;
@@ -35,6 +36,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
   bool _isEditing = false;
+  
+  // Split configuration
+  SplitConfig _splitConfig = const SplitConfig();
 
   @override
   void initState() {
@@ -48,6 +52,17 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       _descriptionController.text = t.description ?? '';
       _noteController.text = t.note ?? '';
       _selectedDate = t.date;
+      
+      // Load split config if editing a split transaction
+      if (t.isSplit) {
+        _splitConfig = SplitConfig(
+          isSplit: true,
+          paidByPersonId: t.paidByPersonId,
+          paidByPersonName: t.paidByPersonName ?? 'Me',
+          myShare: t.myShare ?? 0,
+          splits: t.splits,
+        );
+      }
     } else {
       _selectedType = widget.initialType == 'income'
           ? TransactionType.income
@@ -146,6 +161,12 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         date: _selectedDate,
         createdAt: _isEditing ? widget.editTransaction!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
+        // Split fields
+        isSplit: _splitConfig.isSplit,
+        paidByPersonId: _splitConfig.isSplit ? _splitConfig.paidByPersonId : null,
+        paidByPersonName: _splitConfig.isSplit ? _splitConfig.paidByPersonName : null,
+        splits: _splitConfig.isSplit ? _splitConfig.splits : const [],
+        myShare: _splitConfig.isSplit ? _splitConfig.myShare : null,
       );
 
       final firestoreService = ref.read(firestoreServiceProvider);
@@ -165,6 +186,11 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       ref.invalidate(transactionsProvider);
       ref.invalidate(recentTransactionsProvider);
       ref.invalidate(monthlySummaryProvider);
+      
+      // Refresh balances if this is a split transaction
+      if (_splitConfig.isSplit) {
+        ref.invalidate(personBalancesProvider);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -263,6 +289,21 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 prefixIcon: Icons.note_outlined,
                 maxLines: 3,
               ),
+              
+              // Split Transaction Section (only for expenses)
+              if (_selectedType == TransactionType.expense) ...[
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+                SplitTransactionWidget(
+                  totalAmount: double.tryParse(_amountController.text) ?? 0,
+                  config: _splitConfig,
+                  onConfigChanged: (config) {
+                    setState(() => _splitConfig = config);
+                  },
+                ),
+              ],
+              
               const SizedBox(height: 32),
 
               // Save Button

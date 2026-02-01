@@ -309,11 +309,17 @@ class FirestoreService {
 
     for (final doc in snapshot.docs) {
       final data = doc.data();
+      final isSplit = data['isSplit'] as bool? ?? false;
+      final myShare = (data['myShare'] as num?)?.toDouble();
       final amount = (data['amount'] as num).toDouble();
+      
+      // Use myShare for split transactions, otherwise use full amount
+      final effectiveAmount = isSplit && myShare != null ? myShare : amount;
+      
       if (data['type'] == 'income') {
-        totalIncome += amount;
+        totalIncome += effectiveAmount;
       } else {
-        totalExpense += amount;
+        totalExpense += effectiveAmount;
       }
     }
 
@@ -343,8 +349,14 @@ class FirestoreService {
     for (final doc in snapshot.docs) {
       final data = doc.data();
       final categoryName = data['categoryName'] as String;
+      final isSplit = data['isSplit'] as bool? ?? false;
+      final myShare = (data['myShare'] as num?)?.toDouble();
       final amount = (data['amount'] as num).toDouble();
-      categoryTotals[categoryName] = (categoryTotals[categoryName] ?? 0) + amount;
+      
+      // Use myShare for split transactions
+      final effectiveAmount = isSplit && myShare != null ? myShare : amount;
+      
+      categoryTotals[categoryName] = (categoryTotals[categoryName] ?? 0) + effectiveAmount;
     }
 
     return categoryTotals;

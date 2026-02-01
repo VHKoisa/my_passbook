@@ -439,7 +439,35 @@ class _TransactionTile extends StatelessWidget {
           ),
           child: Icon(_getIconFromString(transaction.categoryIcon), color: color),
         ),
-        title: Text(transaction.categoryName),
+        title: Row(
+          children: [
+            Expanded(child: Text(transaction.categoryName)),
+            if (transaction.isSplit)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                margin: const EdgeInsets.only(left: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.call_split, size: 12, color: AppColors.info),
+                    const SizedBox(width: 2),
+                    Text(
+                      'Split',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.info,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
         subtitle: Text(
           transaction.description ?? transaction.date.time,
           maxLines: 1,
@@ -450,16 +478,25 @@ class _TransactionTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${isExpense ? '-' : '+'}${transaction.amount.currency}',
+              '${isExpense ? '-' : '+'}${transaction.isSplit ? transaction.effectiveAmount.currency : transaction.amount.currency}',
               style: TextStyle(
                 color: isExpense ? AppColors.expense : AppColors.income,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Text(
-              transaction.date.time,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            if (transaction.isSplit)
+              Text(
+                'of ${transaction.amount.currency}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                ),
+              )
+            else
+              Text(
+                transaction.date.time,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ),
       ),

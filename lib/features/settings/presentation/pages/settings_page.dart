@@ -31,6 +31,18 @@ class SettingsPage extends ConsumerWidget {
                   onTap: () => context.push('/categories'),
                 ),
                 _SettingsItem(
+                  icon: Icons.people_outline,
+                  title: 'Manage Friends',
+                  subtitle: 'Add friends to split expenses',
+                  onTap: () => context.push('/persons'),
+                ),
+                _SettingsItem(
+                  icon: Icons.call_split,
+                  title: 'Split Balances',
+                  subtitle: 'View who owes whom',
+                  onTap: () => context.push('/balances'),
+                ),
+                _SettingsItem(
                   icon: Icons.palette_outlined,
                   title: 'Theme',
                   subtitle: 'Light',

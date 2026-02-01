@@ -8,11 +8,7 @@ class CategoryFormDialog extends StatefulWidget {
   final CategoryModel? category;
   final Function(CategoryModel) onSave;
 
-  const CategoryFormDialog({
-    super.key,
-    this.category,
-    required this.onSave,
-  });
+  const CategoryFormDialog({super.key, this.category, required this.onSave});
 
   @override
   State<CategoryFormDialog> createState() => _CategoryFormDialogState();
@@ -21,7 +17,7 @@ class CategoryFormDialog extends StatefulWidget {
 class _CategoryFormDialogState extends State<CategoryFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  
+
   late TransactionType _selectedType;
   late String _selectedIcon;
   late int _selectedColor;
@@ -154,10 +150,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 const SizedBox(height: 20),
 
                 // Type Selector
-                Text(
-                  'Type',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Type', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -167,7 +160,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                         icon: Icons.arrow_upward,
                         isSelected: _selectedType == TransactionType.expense,
                         color: AppColors.expense,
-                        onTap: () => setState(() => _selectedType = TransactionType.expense),
+                        onTap: () => setState(
+                          () => _selectedType = TransactionType.expense,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -177,7 +172,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                         icon: Icons.arrow_downward,
                         isSelected: _selectedType == TransactionType.income,
                         color: AppColors.income,
-                        onTap: () => setState(() => _selectedType = TransactionType.income),
+                        onTap: () => setState(
+                          () => _selectedType = TransactionType.income,
+                        ),
                       ),
                     ),
                   ],
@@ -185,27 +182,23 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                 const SizedBox(height: 20),
 
                 // Icon Picker
-                Text(
-                  'Icon',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Icon', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 IconPickerWidget(
                   selectedIcon: _selectedIcon,
                   selectedColor: previewColor,
-                  onIconSelected: (icon) => setState(() => _selectedIcon = icon),
+                  onIconSelected: (icon) =>
+                      setState(() => _selectedIcon = icon),
                 ),
                 const SizedBox(height: 20),
 
                 // Color Picker
-                Text(
-                  'Color',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Color', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 ColorPickerWidget(
                   selectedColor: _selectedColor,
-                  onColorSelected: (color) => setState(() => _selectedColor = color),
+                  onColorSelected: (color) =>
+                      setState(() => _selectedColor = color),
                 ),
                 const SizedBox(height: 24),
 
@@ -214,7 +207,9 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.pop(context),
                       child: const Text('Cancel'),
                     ),
                     const SizedBox(width: 12),
@@ -262,10 +257,12 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : AppColors.surface,
+          color: isSelected
+              ? color.withOpacity(0.15)
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : AppColors.divider,
+            color: isSelected ? color : Theme.of(context).dividerColor,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -274,14 +271,18 @@ class _TypeChip extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? color : AppColors.textSecondary,
+              color: isSelected
+                  ? color
+                  : Theme.of(context).textTheme.bodySmall?.color,
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : AppColors.textSecondary,
+                color: isSelected
+                    ? color
+                    : Theme.of(context).textTheme.bodySmall?.color,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

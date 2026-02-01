@@ -7,41 +7,45 @@ import '../../../../core/providers/providers.dart';
 import '../../../../shared/models/models.dart';
 
 // Filter state provider
-final transactionFilterProvider = StateProvider<TransactionType?>((ref) => null);
+final transactionFilterProvider = StateProvider<TransactionType?>(
+  (ref) => null,
+);
 
 // Search query provider
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
 // Filtered transactions provider
-final filteredTransactionsProvider = Provider<AsyncValue<List<TransactionModel>>>((ref) {
-  final transactions = ref.watch(transactionsProvider);
-  final filter = ref.watch(transactionFilterProvider);
-  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
+final filteredTransactionsProvider =
+    Provider<AsyncValue<List<TransactionModel>>>((ref) {
+      final transactions = ref.watch(transactionsProvider);
+      final filter = ref.watch(transactionFilterProvider);
+      final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
 
-  return transactions.when(
-    data: (list) {
-      var filtered = list;
-      
-      // Apply type filter
-      if (filter != null) {
-        filtered = filtered.where((t) => t.type == filter).toList();
-      }
-      
-      // Apply search filter
-      if (searchQuery.isNotEmpty) {
-        filtered = filtered.where((t) {
-          return t.categoryName.toLowerCase().contains(searchQuery) ||
-              (t.description?.toLowerCase().contains(searchQuery) ?? false) ||
-              (t.note?.toLowerCase().contains(searchQuery) ?? false);
-        }).toList();
-      }
-      
-      return AsyncValue.data(filtered);
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (e, s) => AsyncValue.error(e, s),
-  );
-});
+      return transactions.when(
+        data: (list) {
+          var filtered = list;
+
+          // Apply type filter
+          if (filter != null) {
+            filtered = filtered.where((t) => t.type == filter).toList();
+          }
+
+          // Apply search filter
+          if (searchQuery.isNotEmpty) {
+            filtered = filtered.where((t) {
+              return t.categoryName.toLowerCase().contains(searchQuery) ||
+                  (t.description?.toLowerCase().contains(searchQuery) ??
+                      false) ||
+                  (t.note?.toLowerCase().contains(searchQuery) ?? false);
+            }).toList();
+          }
+
+          return AsyncValue.data(filtered);
+        },
+        loading: () => const AsyncValue.loading(),
+        error: (e, s) => AsyncValue.error(e, s),
+      );
+    });
 
 class TransactionsPage extends ConsumerStatefulWidget {
   const TransactionsPage({super.key});
@@ -120,7 +124,8 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                   label: 'Income',
                   isSelected: currentFilter == TransactionType.income,
                   onSelected: () {
-                    ref.read(transactionFilterProvider.notifier).state = TransactionType.income;
+                    ref.read(transactionFilterProvider.notifier).state =
+                        TransactionType.income;
                   },
                   color: AppColors.income,
                 ),
@@ -129,7 +134,8 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                   label: 'Expense',
                   isSelected: currentFilter == TransactionType.expense,
                   onSelected: () {
-                    ref.read(transactionFilterProvider.notifier).state = TransactionType.expense;
+                    ref.read(transactionFilterProvider.notifier).state =
+                        TransactionType.expense;
                   },
                   color: AppColors.expense,
                 ),
@@ -143,7 +149,9 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
               data: (transactions) {
                 if (transactions.isEmpty) {
                   return _EmptyState(
-                    hasFilter: currentFilter != null || _searchController.text.isNotEmpty,
+                    hasFilter:
+                        currentFilter != null ||
+                        _searchController.text.isNotEmpty,
                   );
                 }
 
@@ -171,16 +179,12 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                               children: [
                                 Text(
                                   date,
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                        color: AppColors.textSecondary,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                                 Text(
                                   _calculateDayTotal(dayTransactions),
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -190,11 +194,14 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: dayTransactions.length,
-                              separatorBuilder: (_, __) => const Divider(height: 1),
+                              separatorBuilder: (_, __) =>
+                                  const Divider(height: 1),
                               itemBuilder: (context, i) => _TransactionTile(
                                 transaction: dayTransactions[i],
-                                onTap: () => _showTransactionDetails(dayTransactions[i]),
-                                onDelete: () => _deleteTransaction(dayTransactions[i]),
+                                onTap: () =>
+                                    _showTransactionDetails(dayTransactions[i]),
+                                onDelete: () =>
+                                    _deleteTransaction(dayTransactions[i]),
                               ),
                             ),
                           ),
@@ -217,9 +224,11 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
     );
   }
 
-  Map<String, List<TransactionModel>> _groupTransactionsByDate(List<TransactionModel> transactions) {
+  Map<String, List<TransactionModel>> _groupTransactionsByDate(
+    List<TransactionModel> transactions,
+  ) {
     final Map<String, List<TransactionModel>> grouped = {};
-    
+
     for (final transaction in transactions) {
       final dateKey = transaction.date.relativeDate;
       if (grouped.containsKey(dateKey)) {
@@ -228,7 +237,7 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
         grouped[dateKey] = [transaction];
       }
     }
-    
+
     return grouped;
   }
 
@@ -274,7 +283,9 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Transaction'),
-        content: const Text('Are you sure you want to delete this transaction?'),
+        content: const Text(
+          'Are you sure you want to delete this transaction?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -291,22 +302,27 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
 
     if (confirmed == true) {
       try {
-        await ref.read(firestoreServiceProvider).deleteTransaction(transaction.id);
-        
+        await ref
+            .read(firestoreServiceProvider)
+            .deleteTransaction(transaction.id);
+
         // Invalidate providers to refresh data
         ref.invalidate(transactionsProvider);
         ref.invalidate(recentTransactionsProvider);
         ref.invalidate(monthlySummaryProvider);
-        
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transaction deleted')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Transaction deleted')));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: AppColors.error,
+            ),
           );
         }
       }
@@ -329,12 +345,14 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final effectiveColor = color ?? colorScheme.primary;
     return FilterChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onSelected(),
-      selectedColor: (color ?? AppColors.primary).withOpacity(0.2),
-      checkmarkColor: color ?? AppColors.primary,
+      selectedColor: effectiveColor.withOpacity(0.2),
+      checkmarkColor: effectiveColor,
     );
   }
 }
@@ -346,6 +364,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -355,21 +374,19 @@ class _EmptyState extends StatelessWidget {
             Icon(
               hasFilter ? Icons.filter_alt_off : Icons.receipt_long_outlined,
               size: 64,
-              color: AppColors.textTertiary,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               hasFilter ? 'No matching transactions' : 'No transactions yet',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
               hasFilter
                   ? 'Try adjusting your filters'
                   : 'Add your first transaction to get started',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],
@@ -437,7 +454,10 @@ class _TransactionTile extends StatelessWidget {
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(_getIconFromString(transaction.categoryIcon), color: color),
+          child: Icon(
+            _getIconFromString(transaction.categoryIcon),
+            color: color,
+          ),
         ),
         title: Row(
           children: [
@@ -487,10 +507,9 @@ class _TransactionTile extends StatelessWidget {
             if (transaction.isSplit)
               Text(
                 'of ${transaction.amount.currency}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontSize: 10),
               )
             else
               Text(
@@ -527,18 +546,31 @@ class _FilterBottomSheet extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Text(
-            'Date Range',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('Date Range', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             children: [
-              ChoiceChip(label: const Text('All Time'), selected: true, onSelected: (_) {}),
-              ChoiceChip(label: const Text('This Week'), selected: false, onSelected: (_) {}),
-              ChoiceChip(label: const Text('This Month'), selected: false, onSelected: (_) {}),
-              ChoiceChip(label: const Text('Custom'), selected: false, onSelected: (_) {}),
+              ChoiceChip(
+                label: const Text('All Time'),
+                selected: true,
+                onSelected: (_) {},
+              ),
+              ChoiceChip(
+                label: const Text('This Week'),
+                selected: false,
+                onSelected: (_) {},
+              ),
+              ChoiceChip(
+                label: const Text('This Month'),
+                selected: false,
+                onSelected: (_) {},
+              ),
+              ChoiceChip(
+                label: const Text('Custom'),
+                selected: false,
+                onSelected: (_) {},
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -601,7 +633,7 @@ class _TransactionDetailsSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.divider,
+              color: Theme.of(context).dividerColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -627,9 +659,9 @@ class _TransactionDetailsSheet extends StatelessWidget {
           Text(
             '${isExpense ? '-' : '+'}${transaction.amount.currency}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: isExpense ? AppColors.expense : AppColors.income,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: isExpense ? AppColors.expense : AppColors.income,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 24),
           _DetailRow(label: 'Date', value: transaction.date.formatted),
@@ -680,14 +712,8 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
         ],
       ),
     );

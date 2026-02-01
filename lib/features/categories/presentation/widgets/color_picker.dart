@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 
 class ColorPickerWidget extends StatelessWidget {
   final int selectedColor;
@@ -19,7 +18,6 @@ class ColorPickerWidget extends StatelessWidget {
     Color(0xFFEAB308), // Yellow
     Color(0xFF84CC16), // Lime
     Color(0xFF22C55E), // Green
-    
     // Row 2 - Cool colors
     Color(0xFF10B981), // Emerald
     Color(0xFF14B8A6), // Teal
@@ -27,7 +25,6 @@ class ColorPickerWidget extends StatelessWidget {
     Color(0xFF0EA5E9), // Sky
     Color(0xFF3B82F6), // Blue
     Color(0xFF6366F1), // Indigo
-    
     // Row 3 - Purple/Pink
     Color(0xFF8B5CF6), // Violet
     Color(0xFFA855F7), // Purple
@@ -35,7 +32,6 @@ class ColorPickerWidget extends StatelessWidget {
     Color(0xFFEC4899), // Pink
     Color(0xFFF43F5E), // Rose
     Color(0xFF78716C), // Stone
-    
     // Row 4 - Neutral
     Color(0xFF64748B), // Slate
     Color(0xFF6B7280), // Gray
@@ -47,12 +43,13 @@ class ColorPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: GridView.builder(
         shrinkWrap: true,
@@ -89,11 +86,7 @@ class ColorPickerWidget extends StatelessWidget {
                     : null,
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 20,
-                    )
+                  ? const Icon(Icons.check, color: Colors.white, size: 20)
                   : null,
             ),
           );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 
 class IconPickerWidget extends StatelessWidget {
   final String selectedIcon;
@@ -21,7 +20,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('local_grocery_store', Icons.local_grocery_store),
     MapEntry('fastfood', Icons.fastfood),
     MapEntry('cake', Icons.cake),
-    
+
     // Transportation
     MapEntry('directions_car', Icons.directions_car),
     MapEntry('local_gas_station', Icons.local_gas_station),
@@ -29,7 +28,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('flight', Icons.flight),
     MapEntry('train', Icons.train),
     MapEntry('two_wheeler', Icons.two_wheeler),
-    
+
     // Shopping
     MapEntry('shopping_bag', Icons.shopping_bag),
     MapEntry('shopping_cart', Icons.shopping_cart),
@@ -37,7 +36,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('checkroom', Icons.checkroom),
     MapEntry('diamond', Icons.diamond),
     MapEntry('watch', Icons.watch),
-    
+
     // Home & Living
     MapEntry('home', Icons.home),
     MapEntry('electrical_services', Icons.electrical_services),
@@ -45,7 +44,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('local_laundry_service', Icons.local_laundry_service),
     MapEntry('cleaning_services', Icons.cleaning_services),
     MapEntry('chair', Icons.chair),
-    
+
     // Health & Fitness
     MapEntry('local_hospital', Icons.local_hospital),
     MapEntry('medical_services', Icons.medical_services),
@@ -53,7 +52,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('fitness_center', Icons.fitness_center),
     MapEntry('spa', Icons.spa),
     MapEntry('psychology', Icons.psychology),
-    
+
     // Entertainment
     MapEntry('movie', Icons.movie),
     MapEntry('sports_esports', Icons.sports_esports),
@@ -61,7 +60,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('theaters', Icons.theaters),
     MapEntry('sports_soccer', Icons.sports_soccer),
     MapEntry('casino', Icons.casino),
-    
+
     // Education & Work
     MapEntry('school', Icons.school),
     MapEntry('work', Icons.work),
@@ -69,7 +68,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('book', Icons.book),
     MapEntry('science', Icons.science),
     MapEntry('business', Icons.business),
-    
+
     // Finance
     MapEntry('attach_money', Icons.attach_money),
     MapEntry('account_balance', Icons.account_balance),
@@ -77,7 +76,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('payments', Icons.payments),
     MapEntry('credit_card', Icons.credit_card),
     MapEntry('trending_up', Icons.trending_up),
-    
+
     // Bills & Utilities
     MapEntry('receipt_long', Icons.receipt_long),
     MapEntry('subscriptions', Icons.subscriptions),
@@ -85,7 +84,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('wifi', Icons.wifi),
     MapEntry('tv', Icons.tv),
     MapEntry('cloud', Icons.cloud),
-    
+
     // Family & Personal
     MapEntry('child_care', Icons.child_care),
     MapEntry('pets', Icons.pets),
@@ -93,7 +92,7 @@ class IconPickerWidget extends StatelessWidget {
     MapEntry('card_giftcard', Icons.card_giftcard),
     MapEntry('celebration', Icons.celebration),
     MapEntry('favorite', Icons.favorite),
-    
+
     // Other
     MapEntry('category', Icons.category),
     MapEntry('more_horiz', Icons.more_horiz),
@@ -113,12 +112,13 @@ class IconPickerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: GridView.builder(
         padding: const EdgeInsets.all(12),
@@ -137,7 +137,9 @@ class IconPickerWidget extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: isSelected ? selectedColor.withOpacity(0.15) : Colors.transparent,
+                color: isSelected
+                    ? selectedColor.withOpacity(0.15)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected ? selectedColor : Colors.transparent,
@@ -146,7 +148,9 @@ class IconPickerWidget extends StatelessWidget {
               ),
               child: Icon(
                 icon.value,
-                color: isSelected ? selectedColor : AppColors.textSecondary,
+                color: isSelected
+                    ? selectedColor
+                    : Theme.of(context).textTheme.bodySmall?.color,
                 size: 24,
               ),
             ),

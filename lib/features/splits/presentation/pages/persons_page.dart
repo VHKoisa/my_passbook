@@ -37,6 +37,7 @@ class _PersonsPageState extends ConsumerState<PersonsPage> {
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -44,21 +45,21 @@ class _PersonsPageState extends ConsumerState<PersonsPage> {
           Icon(
             Icons.people_outline,
             size: 80,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'No friends added yet',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.textTheme.bodySmall?.color,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Add friends to split expenses with them',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodySmall?.color,
+            ),
           ),
         ],
       ),
@@ -235,15 +236,18 @@ class _PersonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+          backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
           child: Text(
             person.initials,
-            style: const TextStyle(
-              color: AppColors.primary,
+            style: TextStyle(
+              color: colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -255,7 +259,7 @@ class _PersonCard extends StatelessWidget {
         subtitle: person.phone != null || person.email != null
             ? Text(
                 person.phone ?? person.email ?? '',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: theme.textTheme.bodySmall,
               )
             : null,
         trailing: PopupMenuButton(
@@ -269,11 +273,14 @@ class _PersonCard extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: ListTile(
-                leading: Icon(Icons.delete_outline, color: AppColors.error),
-                title: Text('Delete', style: TextStyle(color: AppColors.error)),
+                leading: Icon(Icons.delete_outline, color: colorScheme.error),
+                title: Text(
+                  'Delete',
+                  style: TextStyle(color: colorScheme.error),
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

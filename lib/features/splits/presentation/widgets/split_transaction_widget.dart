@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/providers/providers.dart';
 import '../../../../shared/models/models.dart';
 
@@ -176,6 +175,8 @@ class _SplitTransactionWidgetState
   @override
   Widget build(BuildContext context) {
     final personsAsync = ref.watch(personsProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,11 +190,16 @@ class _SplitTransactionWidgetState
           ),
           subtitle: Text(
             _isSplit ? 'Splitting with friends' : 'Not splitting',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: TextStyle(
+              color: theme.textTheme.bodySmall?.color,
+              fontSize: 12,
+            ),
           ),
           secondary: Icon(
             Icons.call_split,
-            color: _isSplit ? AppColors.primary : AppColors.textSecondary,
+            color: _isSplit
+                ? colorScheme.primary
+                : theme.textTheme.bodySmall?.color,
           ),
           value: _isSplit,
           onChanged: (value) {
@@ -233,6 +239,9 @@ class _SplitTransactionWidgetState
   }
 
   Widget _buildPayerSelector(AsyncValue<List<PersonModel>> personsAsync) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +249,7 @@ class _SplitTransactionWidgetState
           'Paid by',
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: theme.textTheme.bodyLarge?.color,
           ),
         ),
         const SizedBox(height: 8),
@@ -269,9 +278,9 @@ class _SplitTransactionWidgetState
                       });
                     }
                   },
-                  selectedColor: AppColors.primary,
+                  selectedColor: colorScheme.primary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    color: isSelected ? colorScheme.onPrimary : null,
                   ),
                 );
               }).toList(),
@@ -285,6 +294,9 @@ class _SplitTransactionWidgetState
   }
 
   Widget _buildPeopleSelector(AsyncValue<List<PersonModel>> personsAsync) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,7 +307,7 @@ class _SplitTransactionWidgetState
               'Split with',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: theme.textTheme.bodyLarge?.color,
               ),
             ),
             TextButton.icon(
@@ -317,17 +329,22 @@ class _SplitTransactionWidgetState
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.info_outline,
+                      color: theme.textTheme.bodySmall?.color,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Add friends to split expenses with them',
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color,
+                        ),
                       ),
                     ),
                   ],
@@ -354,8 +371,8 @@ class _SplitTransactionWidgetState
                       }
                     });
                   },
-                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                  checkmarkColor: AppColors.primary,
+                  selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                  checkmarkColor: colorScheme.primary,
                 );
               }).toList(),
             );
@@ -401,6 +418,9 @@ class _SplitTransactionWidgetState
   }
 
   Widget _buildSplitBreakdown(AsyncValue<List<PersonModel>> personsAsync) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final selectedCount = _selectedPersons.values.where((v) => v).length + 1;
     final myShare = _isEqualSplit && widget.totalAmount > 0
         ? widget.totalAmount / selectedCount
@@ -413,7 +433,7 @@ class _SplitTransactionWidgetState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -423,7 +443,7 @@ class _SplitTransactionWidgetState
             'Split Breakdown',
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: theme.textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 12),
@@ -552,15 +572,18 @@ class _SplitTypeOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
+          color: isSelected ? colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.divider,
+            color: isSelected ? colorScheme.primary : theme.dividerColor,
           ),
         ),
         child: Row(
@@ -569,13 +592,15 @@ class _SplitTypeOption extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
+              color: isSelected
+                  ? colorScheme.onPrimary
+                  : theme.textTheme.bodySmall?.color,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+                color: isSelected ? colorScheme.onPrimary : null,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -611,16 +636,15 @@ class _SplitRowState extends State<_SplitRow> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-      text: widget.amount.toStringAsFixed(2),
-    );
+    _controller = TextEditingController(text: widget.amount.toStringAsFixed(2));
   }
 
   @override
   void didUpdateWidget(_SplitRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Only update if amount changed externally (e.g., equal split recalculation)
-    if (oldWidget.amount != widget.amount && !_controller.text.contains(widget.amount.toStringAsFixed(2))) {
+    if (oldWidget.amount != widget.amount &&
+        !_controller.text.contains(widget.amount.toStringAsFixed(2))) {
       _controller.text = widget.amount.toStringAsFixed(2);
     }
   }
@@ -635,7 +659,7 @@ class _SplitRowState extends State<_SplitRow> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

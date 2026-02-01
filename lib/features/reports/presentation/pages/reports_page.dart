@@ -10,14 +10,16 @@ import '../../../../shared/models/models.dart';
 final reportPeriodProvider = StateProvider<String>((ref) => 'This Month');
 
 // Category spending provider
-final categorySpendingProvider = FutureProvider<Map<String, double>>((ref) async {
+final categorySpendingProvider = FutureProvider<Map<String, double>>((
+  ref,
+) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return {};
-  
+
   final transactions = await ref.watch(transactionsProvider.future);
   final now = DateTime.now();
   final period = ref.watch(reportPeriodProvider);
-  
+
   DateTime startDate;
   switch (period) {
     case 'This Week':
@@ -32,17 +34,21 @@ final categorySpendingProvider = FutureProvider<Map<String, double>>((ref) async
     default:
       startDate = DateTime(2020, 1, 1);
   }
-  
-  final filtered = transactions.where((t) => 
-    t.type == TransactionType.expense && 
-    t.date.isAfter(startDate.subtract(const Duration(days: 1)))
-  ).toList();
-  
+
+  final filtered = transactions
+      .where(
+        (t) =>
+            t.type == TransactionType.expense &&
+            t.date.isAfter(startDate.subtract(const Duration(days: 1))),
+      )
+      .toList();
+
   final Map<String, double> categorySpending = {};
   for (final t in filtered) {
-    categorySpending[t.categoryName] = (categorySpending[t.categoryName] ?? 0) + t.amount;
+    categorySpending[t.categoryName] =
+        (categorySpending[t.categoryName] ?? 0) + t.amount;
   }
-  
+
   return categorySpending;
 });
 
@@ -104,18 +110,20 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
               child: Row(
                 children: ['This Week', 'This Month', 'This Year', 'All Time']
                     .map((period) {
-                  final isSelected = selectedPeriod == period;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(period),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        ref.read(reportPeriodProvider.notifier).state = period;
-                      },
-                    ),
-                  );
-                }).toList(),
+                      final isSelected = selectedPeriod == period;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(period),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            ref.read(reportPeriodProvider.notifier).state =
+                                period;
+                          },
+                        ),
+                      );
+                    })
+                    .toList(),
               ),
             ),
           ),
@@ -124,10 +132,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _OverviewTab(),
-                _CategoriesTab(),
-              ],
+              children: [_OverviewTab(), _CategoriesTab()],
             ),
           ),
         ],
@@ -187,7 +192,9 @@ class _OverviewTab extends ConsumerWidget {
                       title: 'Net Savings',
                       amount: savings,
                       icon: Icons.savings,
-                      color: savings >= 0 ? AppColors.income : AppColors.expense,
+                      color: savings >= 0
+                          ? AppColors.income
+                          : AppColors.expense,
                       isWide: true,
                     ),
                   ],
@@ -213,9 +220,12 @@ class _OverviewTab extends ConsumerWidget {
                     SizedBox(
                       height: 200,
                       child: transactionsAsync.when(
-                        data: (transactions) => _SpendingLineChart(transactions: transactions),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (_, __) => const Center(child: Text('Error loading chart')),
+                        data: (transactions) =>
+                            _SpendingLineChart(transactions: transactions),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (_, __) =>
+                            const Center(child: Text('Error loading chart')),
                       ),
                     ),
                   ],
@@ -263,10 +273,7 @@ class _SummaryCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                Text(title, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 4),
                 Text(
                   amount.currency,
@@ -295,36 +302,44 @@ class _SpendingLineChart extends StatelessWidget {
     // Group expenses by day for the last 7 days
     final now = DateTime.now();
     final days = List.generate(7, (i) => now.subtract(Duration(days: 6 - i)));
-    
+
     final spots = days.asMap().entries.map((entry) {
       final day = entry.value;
       final dayStart = DateTime(day.year, day.month, day.day);
       final dayEnd = dayStart.add(const Duration(days: 1));
-      
+
       final dayTotal = transactions
-          .where((t) => 
-              t.type == TransactionType.expense &&
-              t.date.isAfter(dayStart.subtract(const Duration(seconds: 1))) &&
-              t.date.isBefore(dayEnd))
+          .where(
+            (t) =>
+                t.type == TransactionType.expense &&
+                t.date.isAfter(dayStart.subtract(const Duration(seconds: 1))) &&
+                t.date.isBefore(dayEnd),
+          )
           .fold<double>(0, (sum, t) => sum + t.amount);
-      
+
       return FlSpot(entry.key.toDouble(), dayTotal);
     }).toList();
 
-    final maxY = spots.isEmpty ? 1000.0 : 
-        (spots.map((s) => s.y).reduce((a, b) => a > b ? a : b) * 1.2).clamp(1000.0, double.infinity);
+    final maxY = spots.isEmpty
+        ? 1000.0
+        : (spots.map((s) => s.y).reduce((a, b) => a > b ? a : b) * 1.2).clamp(
+            1000.0,
+            double.infinity,
+          );
 
     if (spots.every((s) => s.y == 0)) {
+      final theme = Theme.of(context);
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.show_chart, size: 48, color: AppColors.textTertiary),
-            const SizedBox(height: 8),
-            Text(
-              'No spending data yet',
-              style: TextStyle(color: AppColors.textSecondary),
+            Icon(
+              Icons.show_chart,
+              size: 48,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
             ),
+            const SizedBox(height: 8),
+            Text('No spending data yet', style: theme.textTheme.bodyMedium),
           ],
         ),
       );
@@ -338,7 +353,7 @@ class _SpendingLineChart extends StatelessWidget {
           horizontalInterval: maxY / 4,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: AppColors.divider,
+              color: Theme.of(context).dividerColor,
               strokeWidth: 1,
             );
           },
@@ -379,8 +394,12 @@ class _SpendingLineChart extends StatelessWidget {
               },
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
@@ -412,20 +431,24 @@ class _CategoriesTab extends ConsumerWidget {
     return categorySpendingAsync.when(
       data: (categorySpending) {
         if (categorySpending.isEmpty) {
+          final theme = Theme.of(context);
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.pie_chart_outline, size: 64, color: AppColors.textTertiary),
-                const SizedBox(height: 16),
-                Text(
-                  'No expense data yet',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Icon(
+                  Icons.pie_chart_outline,
+                  size: 64,
+                  color: theme.textTheme.bodySmall?.color?.withValues(
+                    alpha: 0.5,
+                  ),
                 ),
+                const SizedBox(height: 16),
+                Text('No expense data yet', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(
                   'Add transactions to see category breakdown',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: theme.textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -434,8 +457,11 @@ class _CategoriesTab extends ConsumerWidget {
 
         final sortedCategories = categorySpending.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value));
-        
-        final total = sortedCategories.fold<double>(0, (sum, e) => sum + e.value);
+
+        final total = sortedCategories.fold<double>(
+          0,
+          (sum, e) => sum + e.value,
+        );
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -453,17 +479,22 @@ class _CategoriesTab extends ConsumerWidget {
                           PieChartData(
                             sectionsSpace: 2,
                             centerSpaceRadius: 60,
-                            sections: sortedCategories.asMap().entries.map((entry) {
+                            sections: sortedCategories.asMap().entries.map((
+                              entry,
+                            ) {
                               final index = entry.key;
                               final cat = entry.value;
                               final percentage = (cat.value / total) * 100;
-                              final color = AppColors.categoryColors[
-                                  index % AppColors.categoryColors.length];
-                              
+                              final color =
+                                  AppColors.categoryColors[index %
+                                      AppColors.categoryColors.length];
+
                               return PieChartSectionData(
                                 color: color,
                                 value: cat.value,
-                                title: percentage >= 5 ? '${percentage.toStringAsFixed(0)}%' : '',
+                                title: percentage >= 5
+                                    ? '${percentage.toStringAsFixed(0)}%'
+                                    : '',
                                 radius: 50,
                                 titleStyle: const TextStyle(
                                   fontSize: 12,
@@ -496,8 +527,9 @@ class _CategoriesTab extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final cat = sortedCategories[index];
                     final percentage = (cat.value / total) * 100;
-                    final color = AppColors.categoryColors[
-                        index % AppColors.categoryColors.length];
+                    final color =
+                        AppColors.categoryColors[index %
+                            AppColors.categoryColors.length];
 
                     return ListTile(
                       leading: Container(

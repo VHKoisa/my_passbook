@@ -156,9 +156,8 @@ class _BalanceCard extends StatelessWidget {
             ],
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
         error: (_, __) => const Center(
           child: Text(
             'Error loading data',
@@ -288,10 +287,7 @@ class _QuickActionButton extends StatelessWidget {
               child: Icon(icon, color: color),
             ),
             const SizedBox(height: 8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
@@ -303,24 +299,15 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback onSeeAll;
 
-  const _SectionHeader({
-    required this.title,
-    required this.onSeeAll,
-  });
+  const _SectionHeader({required this.title, required this.onSeeAll});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        TextButton(
-          onPressed: onSeeAll,
-          child: const Text('See All'),
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        TextButton(onPressed: onSeeAll, child: const Text('See All')),
       ],
     );
   }
@@ -333,6 +320,7 @@ class _RecentTransactionsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return transactionsAsync.when(
       data: (transactions) {
         if (transactions.isEmpty) {
@@ -344,17 +332,19 @@ class _RecentTransactionsList extends StatelessWidget {
                   Icon(
                     Icons.receipt_long_outlined,
                     size: 48,
-                    color: AppColors.textTertiary,
+                    color: theme.textTheme.bodySmall?.color?.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No transactions yet',
-                    style: TextStyle(color: AppColors.textSecondary),
+                    style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add your first transaction to get started',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -471,7 +461,9 @@ class _SpendingOverview extends StatelessWidget {
               data: (budget) {
                 final budgetAmount = budget?.amount ?? 0;
                 final remaining = budgetAmount > 0 ? budgetAmount - spent : 0;
-                final progress = budgetAmount > 0 ? (spent / budgetAmount).clamp(0.0, 1.0) : 0.0;
+                final progress = budgetAmount > 0
+                    ? (spent / budgetAmount).clamp(0.0, 1.0)
+                    : 0.0;
                 final percentage = (progress * 100).toStringAsFixed(1);
 
                 return Column(
@@ -486,13 +478,19 @@ class _SpendingOverview extends StatelessWidget {
                         ),
                         _OverviewItem(
                           label: 'Budget',
-                          amount: budgetAmount > 0 ? budgetAmount.currency : 'Not set',
+                          amount: budgetAmount > 0
+                              ? budgetAmount.currency
+                              : 'Not set',
                           color: AppColors.primary,
                         ),
                         _OverviewItem(
                           label: 'Remaining',
-                          amount: remaining >= 0 ? remaining.currency : 0.0.currency,
-                          color: remaining >= 0 ? AppColors.income : AppColors.expense,
+                          amount: remaining >= 0
+                              ? remaining.currency
+                              : 0.0.currency,
+                          color: remaining >= 0
+                              ? AppColors.income
+                              : AppColors.expense,
                         ),
                       ],
                     ),
@@ -502,9 +500,11 @@ class _SpendingOverview extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: progress.toDouble(),
-                          backgroundColor: AppColors.divider,
+                          backgroundColor: Theme.of(context).dividerColor,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            progress > 0.8 ? AppColors.expense : AppColors.primary,
+                            progress > 0.8
+                                ? AppColors.expense
+                                : AppColors.primary,
                           ),
                           minHeight: 8,
                         ),
@@ -552,10 +552,7 @@ class _OverviewItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 4),
         Text(
           amount,

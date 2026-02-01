@@ -42,6 +42,7 @@ class BalancesPage extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -53,20 +54,20 @@ class BalancesPage extends ConsumerWidget {
               Icon(
                 Icons.account_balance_wallet_outlined,
                 size: 80,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
               Text(
                 'All settled up!',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Split a transaction to see balances here',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -291,6 +292,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final netBalance = totalOwedToMe - totalIOwe;
 
     return Card(
@@ -300,14 +302,14 @@ class _SummaryCard extends StatelessWidget {
           children: [
             Text(
               'Net Balance',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: AppColors.textSecondary),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               '${netBalance >= 0 ? '+' : ''}₹${netBalance.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              style: theme.textTheme.headlineMedium?.copyWith(
                 color: netBalance >= 0 ? AppColors.income : AppColors.expense,
                 fontWeight: FontWeight.bold,
               ),
@@ -315,9 +317,9 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               netBalance >= 0 ? 'Overall, you are owed' : 'Overall, you owe',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
+              ),
             ),
             const SizedBox(height: 20),
             const Divider(),
@@ -332,7 +334,7 @@ class _SummaryCard extends StatelessWidget {
                     icon: Icons.arrow_upward,
                   ),
                 ),
-                Container(width: 1, height: 40, color: AppColors.divider),
+                Container(width: 1, height: 40, color: theme.dividerColor),
                 Expanded(
                   child: _SummaryItem(
                     label: 'You are owed',
@@ -365,6 +367,7 @@ class _SummaryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Row(
@@ -372,18 +375,13 @@ class _SummaryItem extends StatelessWidget {
           children: [
             Icon(icon, size: 16, color: color),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-            ),
+            Text(label, style: theme.textTheme.bodySmall),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           '₹${amount.toStringAsFixed(2)}',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleMedium?.copyWith(
             color: color,
             fontWeight: FontWeight.bold,
           ),
@@ -432,9 +430,7 @@ class _BalanceCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     isOwedToMe ? 'owes you' : 'you owe',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -484,22 +480,27 @@ class _SettlementOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.background,
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.divider,
+            color: isSelected ? colorScheme.primary : theme.dividerColor,
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textPrimary,
+            color: isSelected ? colorScheme.onPrimary : null,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 13,
           ),

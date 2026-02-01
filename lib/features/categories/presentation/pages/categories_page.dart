@@ -10,6 +10,7 @@ class CategoriesPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -20,9 +21,9 @@ class CategoriesPage extends ConsumerWidget {
               Tab(text: 'Expense'),
               Tab(text: 'Income'),
             ],
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: colorScheme.primary,
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
         body: TabBarView(
@@ -50,7 +51,7 @@ class CategoriesPage extends ConsumerWidget {
 
           final newCategory = category.copyWith(userId: user.uid);
           await ref.read(firestoreServiceProvider).addCategory(newCategory);
-          
+
           // Refresh categories
           ref.invalidate(categoriesProvider);
           ref.invalidate(expenseCategoriesProvider);
@@ -103,11 +104,18 @@ class _CategoryList extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
-            Text('Error loading categories'),
+            const Text('Error loading categories'),
             const SizedBox(height: 8),
-            Text(error.toString(), style: TextStyle(color: AppColors.textSecondary)),
+            Text(
+              error.toString(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -123,14 +131,20 @@ class _CategoryList extends ConsumerWidget {
     );
   }
 
-  void _showEditDialog(BuildContext context, WidgetRef ref, CategoryModel category) {
+  void _showEditDialog(
+    BuildContext context,
+    WidgetRef ref,
+    CategoryModel category,
+  ) {
     showDialog(
       context: context,
       builder: (context) => CategoryFormDialog(
         category: category,
         onSave: (updatedCategory) async {
-          await ref.read(firestoreServiceProvider).updateCategory(updatedCategory);
-          
+          await ref
+              .read(firestoreServiceProvider)
+              .updateCategory(updatedCategory);
+
           ref.invalidate(categoriesProvider);
           ref.invalidate(expenseCategoriesProvider);
           ref.invalidate(incomeCategoriesProvider);
@@ -139,7 +153,11 @@ class _CategoryList extends ConsumerWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref, CategoryModel category) {
+  void _showDeleteDialog(
+    BuildContext context,
+    WidgetRef ref,
+    CategoryModel category,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -180,8 +198,10 @@ class _CategoryList extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await ref.read(firestoreServiceProvider).deleteCategory(category.id);
-                
+                await ref
+                    .read(firestoreServiceProvider)
+                    .deleteCategory(category.id);
+
                 ref.invalidate(categoriesProvider);
                 ref.invalidate(expenseCategoriesProvider);
                 ref.invalidate(incomeCategoriesProvider);
@@ -275,10 +295,7 @@ class _CategoryTile extends StatelessWidget {
             color: color.withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            _getIconFromString(category.icon),
-            color: color,
-          ),
+          child: Icon(_getIconFromString(category.icon), color: color),
         ),
         title: Text(
           category.name,
@@ -290,12 +307,11 @@ class _CategoryTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: onEdit,
-              color: AppColors.textSecondary,
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: onDelete,
-              color: AppColors.error,
+              color: Theme.of(context).colorScheme.error,
             ),
           ],
         ),
@@ -312,6 +328,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -319,24 +336,26 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.category_outlined,
             size: 64,
-            color: AppColors.textTertiary,
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'No ${type == TransactionType.expense ? 'expense' : 'income'} categories',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
             'Tap the button below to create default categories',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () async {
               final user = ref.read(currentUserProvider);
               if (user != null) {
-                await ref.read(firestoreServiceProvider).initializeDefaultCategories(user.uid);
+                await ref
+                    .read(firestoreServiceProvider)
+                    .initializeDefaultCategories(user.uid);
                 ref.invalidate(categoriesProvider);
                 ref.invalidate(expenseCategoriesProvider);
                 ref.invalidate(incomeCategoriesProvider);

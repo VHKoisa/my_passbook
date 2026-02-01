@@ -10,9 +10,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -83,10 +81,7 @@ class SettingsPage extends ConsumerWidget {
                 _SettingsItem(
                   icon: Icons.fingerprint,
                   title: 'Biometric Lock',
-                  trailing: Switch(
-                    value: false,
-                    onChanged: (value) {},
-                  ),
+                  trailing: Switch(value: false, onChanged: (value) {}),
                 ),
                 _SettingsItem(
                   icon: Icons.lock_outline,
@@ -103,12 +98,14 @@ class SettingsPage extends ConsumerWidget {
                 _SettingsItem(
                   icon: Icons.cloud_upload_outlined,
                   title: 'Backup Data',
-                  onTap: () => _showSnackBar(context, 'Backup feature coming soon'),
+                  onTap: () =>
+                      _showSnackBar(context, 'Backup feature coming soon'),
                 ),
                 _SettingsItem(
                   icon: Icons.cloud_download_outlined,
                   title: 'Restore Data',
-                  onTap: () => _showSnackBar(context, 'Restore feature coming soon'),
+                  onTap: () =>
+                      _showSnackBar(context, 'Restore feature coming soon'),
                 ),
                 _SettingsItem(
                   icon: Icons.file_download_outlined,
@@ -249,7 +246,8 @@ class SettingsPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () {
-              if (newPasswordController.text != confirmPasswordController.text) {
+              if (newPasswordController.text !=
+                  confirmPasswordController.text) {
                 _showSnackBar(context, 'Passwords do not match');
                 return;
               }
@@ -283,9 +281,7 @@ class SettingsPage extends ConsumerWidget {
                 context.go('/login');
               }
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.expense,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.expense),
             child: const Text('Logout'),
           ),
         ],
@@ -294,9 +290,9 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -326,7 +322,9 @@ class _ProfileSection extends ConsumerWidget {
               backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
               child: photoUrl == null
                   ? Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : 'U',
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -360,11 +358,9 @@ class _ProfileSection extends ConsumerWidget {
               ),
             ),
             IconButton(
-              onPressed: () => _showEditProfileDialog(context, ref, displayName, email),
-              icon: const Icon(
-                Icons.edit_outlined,
-                color: Colors.white,
-              ),
+              onPressed: () =>
+                  _showEditProfileDialog(context, ref, displayName, email),
+              icon: const Icon(Icons.edit_outlined, color: Colors.white),
             ),
           ],
         ),
@@ -372,9 +368,14 @@ class _ProfileSection extends ConsumerWidget {
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, WidgetRef ref, String currentName, String currentEmail) {
+  void _showEditProfileDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String currentName,
+    String currentEmail,
+  ) {
     final nameController = TextEditingController(text: currentName);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -401,10 +402,7 @@ class _ProfileSection extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               'Email cannot be changed',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -418,18 +416,22 @@ class _ProfileSection extends ConsumerWidget {
               final newName = nameController.text.trim();
               if (newName.isNotEmpty) {
                 try {
-                  await ref.read(authServiceProvider).updateDisplayName(newName);
+                  await ref
+                      .read(authServiceProvider)
+                      .updateDisplayName(newName);
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Profile updated successfully')),
+                      const SnackBar(
+                        content: Text('Profile updated successfully'),
+                      ),
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               }
@@ -446,10 +448,7 @@ class _SettingsGroup extends StatelessWidget {
   final String title;
   final List<_SettingsItem> items;
 
-  const _SettingsGroup({
-    required this.title,
-    required this.items,
-  });
+  const _SettingsGroup({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -458,12 +457,7 @@ class _SettingsGroup extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-          ),
+          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
         ),
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -501,7 +495,8 @@ class _SettingsItem extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primary),
       title: Text(title),
       subtitle: subtitle != null ? Text(subtitle!) : null,
-      trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
+      trailing:
+          trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
       onTap: onTap,
     );
   }

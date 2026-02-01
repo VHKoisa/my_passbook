@@ -15,11 +15,7 @@ class AddTransactionPage extends ConsumerStatefulWidget {
   final String? initialType;
   final TransactionModel? editTransaction;
 
-  const AddTransactionPage({
-    super.key,
-    this.initialType,
-    this.editTransaction,
-  });
+  const AddTransactionPage({super.key, this.initialType, this.editTransaction});
 
   @override
   ConsumerState<AddTransactionPage> createState() => _AddTransactionPageState();
@@ -36,7 +32,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
   bool _isEditing = false;
-  
+
   // Split configuration
   SplitConfig _splitConfig = const SplitConfig();
 
@@ -44,7 +40,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   void initState() {
     super.initState();
     _isEditing = widget.editTransaction != null;
-    
+
     if (_isEditing) {
       final t = widget.editTransaction!;
       _selectedType = t.type;
@@ -52,7 +48,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       _descriptionController.text = t.description ?? '';
       _noteController.text = t.note ?? '';
       _selectedDate = t.date;
-      
+
       // Load split config if editing a split transaction
       if (t.isSplit) {
         _splitConfig = SplitConfig(
@@ -82,24 +78,28 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     try {
       final notificationService = ref.read(notificationServiceProvider);
       final settings = notificationService.settings;
-      
+
       if (!settings.budgetAlerts) return;
 
       // Get budgets for this category
       final budgets = ref.read(budgetsProvider).valueOrNull ?? [];
-      final categoryBudget = budgets.where((b) => b.categoryId == transaction.categoryId).firstOrNull;
-      
+      final categoryBudget = budgets
+          .where((b) => b.categoryId == transaction.categoryId)
+          .firstOrNull;
+
       if (categoryBudget == null) return;
 
       // Calculate total spent this month for this category
       final now = DateTime.now();
       final transactions = ref.read(transactionsProvider).valueOrNull ?? [];
       final monthlySpent = transactions
-          .where((t) =>
-              t.categoryId == transaction.categoryId &&
-              t.type == TransactionType.expense &&
-              t.date.month == now.month &&
-              t.date.year == now.year)
+          .where(
+            (t) =>
+                t.categoryId == transaction.categoryId &&
+                t.type == TransactionType.expense &&
+                t.date.month == now.month &&
+                t.date.year == now.year,
+          )
           .fold<double>(0, (sum, t) => sum + t.amount);
 
       // Add the new transaction amount
@@ -135,9 +135,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
 
@@ -156,21 +156,29 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
         categoryColor: _selectedCategory!.color,
         amount: double.parse(_amountController.text),
         type: _selectedType,
-        description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        description: _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
         note: _noteController.text.isEmpty ? null : _noteController.text,
         date: _selectedDate,
-        createdAt: _isEditing ? widget.editTransaction!.createdAt : DateTime.now(),
+        createdAt: _isEditing
+            ? widget.editTransaction!.createdAt
+            : DateTime.now(),
         updatedAt: DateTime.now(),
         // Split fields
         isSplit: _splitConfig.isSplit,
-        paidByPersonId: _splitConfig.isSplit ? _splitConfig.paidByPersonId : null,
-        paidByPersonName: _splitConfig.isSplit ? _splitConfig.paidByPersonName : null,
+        paidByPersonId: _splitConfig.isSplit
+            ? _splitConfig.paidByPersonId
+            : null,
+        paidByPersonName: _splitConfig.isSplit
+            ? _splitConfig.paidByPersonName
+            : null,
         splits: _splitConfig.isSplit ? _splitConfig.splits : const [],
         myShare: _splitConfig.isSplit ? _splitConfig.myShare : null,
       );
 
       final firestoreService = ref.read(firestoreServiceProvider);
-      
+
       if (_isEditing) {
         await firestoreService.updateTransaction(transaction);
       } else {
@@ -186,7 +194,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       ref.invalidate(transactionsProvider);
       ref.invalidate(recentTransactionsProvider);
       ref.invalidate(monthlySummaryProvider);
-      
+
       // Refresh balances if this is a split transaction
       if (_splitConfig.isSplit) {
         ref.invalidate(personBalancesProvider);
@@ -195,7 +203,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEditing ? 'Transaction updated' : 'Transaction added'),
+            content: Text(
+              _isEditing ? 'Transaction updated' : 'Transaction added',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -225,7 +235,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Transaction' : AppStrings.addTransaction),
+        title: Text(
+          _isEditing ? 'Edit Transaction' : AppStrings.addTransaction,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -251,25 +263,20 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
               const SizedBox(height: 24),
 
               // Amount Field
-              _AmountField(
-                controller: _amountController,
-                type: _selectedType,
-              ),
+              _AmountField(controller: _amountController, type: _selectedType),
               const SizedBox(height: 24),
 
               // Category Selector
               _CategorySelector(
                 categoriesAsync: categoriesAsync,
                 selectedCategory: _selectedCategory,
-                onChanged: (category) => setState(() => _selectedCategory = category),
+                onChanged: (category) =>
+                    setState(() => _selectedCategory = category),
               ),
               const SizedBox(height: 16),
 
               // Date Selector
-              _DateSelector(
-                selectedDate: _selectedDate,
-                onTap: _selectDate,
-              ),
+              _DateSelector(selectedDate: _selectedDate, onTap: _selectDate),
               const SizedBox(height: 16),
 
               // Description Field
@@ -289,7 +296,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 prefixIcon: Icons.note_outlined,
                 maxLines: 3,
               ),
-              
+
               // Split Transaction Section (only for expenses)
               if (_selectedType == TransactionType.expense) ...[
                 const SizedBox(height: 24),
@@ -303,7 +310,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   },
                 ),
               ],
-              
+
               const SizedBox(height: 32),
 
               // Save Button
@@ -324,17 +331,14 @@ class _TypeSelector extends StatelessWidget {
   final TransactionType selectedType;
   final ValueChanged<TransactionType> onChanged;
 
-  const _TypeSelector({
-    required this.selectedType,
-    required this.onChanged,
-  });
+  const _TypeSelector({required this.selectedType, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -380,6 +384,7 @@ class _TypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -394,14 +399,18 @@ class _TypeButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
+              color: isSelected
+                  ? Colors.white
+                  : theme.textTheme.bodySmall?.color,
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+                color: isSelected
+                    ? Colors.white
+                    : theme.textTheme.bodySmall?.color,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -416,10 +425,7 @@ class _AmountField extends StatelessWidget {
   final TextEditingController controller;
   final TransactionType type;
 
-  const _AmountField({
-    required this.controller,
-    required this.type,
-  });
+  const _AmountField({required this.controller, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -429,10 +435,7 @@ class _AmountField extends StatelessWidget {
 
     return Column(
       children: [
-        Text(
-          AppStrings.amount,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(AppStrings.amount, style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -450,7 +453,9 @@ class _AmountField extends StatelessWidget {
             IntrinsicWidth(
               child: TextFormField(
                 controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 48,
@@ -538,7 +543,9 @@ class _CategorySelector extends StatelessWidget {
                         // Initialize default categories
                         final user = FirebaseAuth.instance.currentUser;
                         if (user != null) {
-                          await FirestoreService().initializeDefaultCategories(user.uid);
+                          await FirestoreService().initializeDefaultCategories(
+                            user.uid,
+                          );
                         }
                       },
                       icon: const Icon(Icons.add),
@@ -555,17 +562,23 @@ class _CategorySelector extends StatelessWidget {
               children: categories.map((category) {
                 final isSelected = selectedCategory?.id == category.id;
                 final color = Color(category.color);
+                final theme = Theme.of(context);
 
                 return GestureDetector(
                   onTap: () => onChanged(category),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? color : AppColors.background,
+                      color: isSelected
+                          ? color
+                          : theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSelected ? color : AppColors.divider,
+                        color: isSelected ? color : theme.dividerColor,
                       ),
                     ),
                     child: Row(
@@ -580,8 +593,10 @@ class _CategorySelector extends StatelessWidget {
                         Text(
                           category.name,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: isSelected ? Colors.white : null,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -603,10 +618,7 @@ class _DateSelector extends StatelessWidget {
   final DateTime selectedDate;
   final VoidCallback onTap;
 
-  const _DateSelector({
-    required this.selectedDate,
-    required this.onTap,
-  });
+  const _DateSelector({required this.selectedDate, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -614,7 +626,7 @@ class _DateSelector extends StatelessWidget {
       onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.divider),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       leading: const Icon(Icons.calendar_today_outlined),
       title: const Text(AppStrings.date),

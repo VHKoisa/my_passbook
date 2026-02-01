@@ -182,7 +182,10 @@ class _OverallBudgetCard extends ConsumerWidget {
                           ],
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: percentUsed > 0.8
                                 ? AppColors.expense.withOpacity(0.1)
@@ -192,7 +195,9 @@ class _OverallBudgetCard extends ConsumerWidget {
                           child: Text(
                             '${(percentUsed * 100).toStringAsFixed(0)}% used',
                             style: TextStyle(
-                              color: percentUsed > 0.8 ? AppColors.expense : AppColors.income,
+                              color: percentUsed > 0.8
+                                  ? AppColors.expense
+                                  : AppColors.income,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -206,7 +211,11 @@ class _OverallBudgetCard extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton.icon(
-                            onPressed: () => _showEditBudgetSheet(context, ref, currentBudget),
+                            onPressed: () => _showEditBudgetSheet(
+                              context,
+                              ref,
+                              currentBudget,
+                            ),
                             icon: const Icon(Icons.edit_outlined, size: 18),
                             label: const Text('Edit'),
                             style: TextButton.styleFrom(
@@ -215,7 +224,11 @@ class _OverallBudgetCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           TextButton.icon(
-                            onPressed: () => _showDeleteBudgetDialog(context, ref, currentBudget),
+                            onPressed: () => _showDeleteBudgetDialog(
+                              context,
+                              ref,
+                              currentBudget,
+                            ),
                             icon: const Icon(Icons.delete_outline, size: 18),
                             label: const Text('Delete'),
                             style: TextButton.styleFrom(
@@ -241,7 +254,9 @@ class _OverallBudgetCard extends ConsumerWidget {
                         _BudgetStat(
                           label: 'Remaining',
                           amount: remaining > 0 ? remaining : 0,
-                          color: remaining > 0 ? AppColors.income : AppColors.expense,
+                          color: remaining > 0
+                              ? AppColors.income
+                              : AppColors.expense,
                         ),
                       ],
                     ),
@@ -250,9 +265,11 @@ class _OverallBudgetCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         value: percentUsed.clamp(0.0, 1.0),
-                        backgroundColor: AppColors.divider,
+                        backgroundColor: Theme.of(context).dividerColor,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          percentUsed > 0.8 ? AppColors.expense : AppColors.primary,
+                          percentUsed > 0.8
+                              ? AppColors.expense
+                              : AppColors.primary,
                         ),
                         minHeight: 12,
                       ),
@@ -267,7 +284,11 @@ class _OverallBudgetCard extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning, color: AppColors.expense, size: 20),
+                            const Icon(
+                              Icons.warning,
+                              color: AppColors.expense,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Over budget by ${remaining.abs().currency}',
@@ -294,7 +315,11 @@ class _OverallBudgetCard extends ConsumerWidget {
     );
   }
 
-  void _showEditBudgetSheet(BuildContext context, WidgetRef ref, BudgetModel budget) {
+  void _showEditBudgetSheet(
+    BuildContext context,
+    WidgetRef ref,
+    BudgetModel budget,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -322,7 +347,11 @@ class _OverallBudgetCard extends ConsumerWidget {
     );
   }
 
-  void _showDeleteBudgetDialog(BuildContext context, WidgetRef ref, BudgetModel budget) {
+  void _showDeleteBudgetDialog(
+    BuildContext context,
+    WidgetRef ref,
+    BudgetModel budget,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -362,24 +391,23 @@ class _OverallBudgetCard extends ConsumerWidget {
 class _NoBudgetState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Icon(
           Icons.account_balance_wallet_outlined,
           size: 48,
-          color: AppColors.textTertiary,
+          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
         ),
         const SizedBox(height: 16),
         Text(
           'No budget set for this month',
-          style: Theme.of(context).textTheme.titleMedium,
+          style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
         Text(
           'Set a monthly budget to track your spending',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+          style: theme.textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
       ],
@@ -402,10 +430,7 @@ class _BudgetStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 4),
         Text(
           amount.currency,
@@ -430,9 +455,12 @@ class _CategoryBudgetsList extends StatelessWidget {
     return budgetsAsync.when(
       data: (budgets) {
         // Filter for category-specific budgets (if any)
-        final categoryBudgets = budgets.where((b) => b.categoryId != null).toList();
-        
+        final categoryBudgets = budgets
+            .where((b) => b.categoryId != null)
+            .toList();
+
         if (categoryBudgets.isEmpty) {
+          final theme = Theme.of(context);
           return Card(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -441,19 +469,19 @@ class _CategoryBudgetsList extends StatelessWidget {
                   Icon(
                     Icons.category_outlined,
                     size: 48,
-                    color: AppColors.textTertiary,
+                    color: theme.textTheme.bodySmall?.color?.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No category budgets yet',
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: theme.textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add category-specific budgets to track spending by category',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                    style: theme.textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -467,7 +495,8 @@ class _CategoryBudgetsList extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: categoryBudgets.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) => _CategoryBudgetCard(budget: categoryBudgets[index]),
+          itemBuilder: (context, index) =>
+              _CategoryBudgetCard(budget: categoryBudgets[index]),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -483,16 +512,17 @@ class _CategoryBudgetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // Placeholder - will be expanded when category budgets are implemented
     return Card(
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.category, color: AppColors.primary),
+          child: Icon(Icons.category, color: colorScheme.primary),
         ),
         title: Text(budget.categoryId ?? 'Category'),
         subtitle: Text('Budget: ${budget.amount.currency}'),
@@ -550,14 +580,14 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
             const SizedBox(height: 8),
             Text(
               'Budget for ${now.monthYear}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: 'Budget Amount',
                 prefixText: '₹ ',
@@ -589,7 +619,9 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
                         final amount = double.tryParse(_amountController.text);
                         if (amount == null || amount <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid amount')),
+                            const SnackBar(
+                              content: Text('Please enter a valid amount'),
+                            ),
                           );
                           return;
                         }
@@ -620,10 +652,7 @@ class _EditBudgetSheet extends StatefulWidget {
   final BudgetModel budget;
   final Function(double) onSave;
 
-  const _EditBudgetSheet({
-    required this.budget,
-    required this.onSave,
-  });
+  const _EditBudgetSheet({required this.budget, required this.onSave});
 
   @override
   State<_EditBudgetSheet> createState() => _EditBudgetSheetState();
@@ -677,14 +706,14 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
             const SizedBox(height: 8),
             Text(
               'Budget for ${budgetDate.monthYear}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             TextField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: 'Budget Amount',
                 prefixText: '₹ ',
@@ -716,7 +745,9 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
                         final amount = double.tryParse(_amountController.text);
                         if (amount == null || amount <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid amount')),
+                            const SnackBar(
+                              content: Text('Please enter a valid amount'),
+                            ),
                           );
                           return;
                         }

@@ -10,6 +10,8 @@ class AppConstants {
   static const String transactionsCollection = 'transactions';
   static const String categoriesCollection = 'categories';
   static const String budgetsCollection = 'budgets';
+  static const String personsCollection = 'persons';
+  static const String settlementsCollection = 'settlements';
 
   // Hive Boxes
   static const String settingsBox = 'settings';

@@ -12,6 +12,9 @@ import '../../features/transactions/presentation/pages/add_transaction_page.dart
 import '../../features/budgets/presentation/pages/budgets_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/notifications_settings_page.dart';
+import '../../features/settings/presentation/pages/export_page.dart';
+import '../../features/categories/presentation/pages/categories_page.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -116,6 +119,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final type = state.uri.queryParameters['type'];
           return AddTransactionPage(initialType: type);
         },
+      ),
+      GoRoute(
+        path: '/categories',
+        name: 'categories',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CategoriesPage(),
+      ),
+      GoRoute(
+        path: '/notifications-settings',
+        name: 'notifications-settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationsSettingsPage(),
+      ),
+      GoRoute(
+        path: '/export',
+        name: 'export',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ExportPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

@@ -7,6 +7,8 @@ import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'core/constants/app_constants.dart';
+import 'core/services/local_storage_service.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +17,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Hive for offline storage
+  final localStorage = LocalStorageService();
+  await localStorage.init();
+
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.init();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -31,11 +41,19 @@ void main() async {
   );
 
   runApp(
-    const ProviderScope(
-      child: MyPassbookApp(),
+    ProviderScope(
+      overrides: [
+        localStorageServiceProvider.overrideWithValue(localStorage),
+      ],
+      child: const MyPassbookApp(),
     ),
   );
 }
+
+/// Provider for local storage (defined here to allow override)
+final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
+  return LocalStorageService();
+});
 
 class MyPassbookApp extends ConsumerWidget {
   const MyPassbookApp({super.key});

@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/connectivity_service.dart';
 import '../../shared/models/models.dart';
+import '../../main.dart' show localStorageServiceProvider;
 
 // ==================== SERVICE PROVIDERS ====================
 
@@ -190,52 +192,102 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
 
 // ==================== DATA PROVIDERS ====================
 
-/// Transactions stream provider
+/// Transactions stream provider with offline fallback
 final transactionsProvider = StreamProvider<List<TransactionModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamTransactions();
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamTransactions();
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  // Cache data when received from Firestore
+  return firestoreStream.map((transactions) {
+    localStorage.cacheTransactions(user.uid, transactions);
+    return transactions;
+  }).handleError((error) {
+    // Return cached data on error (offline)
+    return localStorage.getCachedTransactions(user.uid);
+  });
 });
 
-/// Recent transactions provider (last 5)
+/// Recent transactions provider (last 5) with offline fallback
 final recentTransactionsProvider = StreamProvider<List<TransactionModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamTransactions(limit: 5);
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamTransactions(limit: 5);
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  return firestoreStream.handleError((error) {
+    return localStorage.getCachedTransactions(user.uid).take(5).toList();
+  });
 });
 
-/// Categories stream provider
+/// Categories stream provider with offline fallback
 final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamCategories();
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamCategories();
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  return firestoreStream.map((categories) {
+    localStorage.cacheCategories(user.uid, categories);
+    return categories;
+  }).handleError((error) {
+    return localStorage.getCachedCategories(user.uid);
+  });
 });
 
-/// Expense categories provider
+/// Expense categories provider with offline fallback
 final expenseCategoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamCategories(type: TransactionType.expense);
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamCategories(type: TransactionType.expense);
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  return firestoreStream.handleError((error) {
+    return localStorage.getCachedCategories(user.uid, type: TransactionType.expense);
+  });
 });
 
-/// Income categories provider
+/// Income categories provider with offline fallback
 final incomeCategoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamCategories(type: TransactionType.income);
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamCategories(type: TransactionType.income);
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  return firestoreStream.handleError((error) {
+    return localStorage.getCachedCategories(user.uid, type: TransactionType.income);
+  });
 });
 
-/// Budgets stream provider
+/// Budgets stream provider with offline fallback
 final budgetsProvider = StreamProvider<List<BudgetModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   
-  return ref.watch(firestoreServiceProvider).streamBudgets();
+  final firestoreStream = ref.watch(firestoreServiceProvider).streamBudgets();
+  final localStorage = ref.watch(localStorageServiceProvider);
+  
+  return firestoreStream.map((budgets) {
+    localStorage.cacheBudgets(user.uid, budgets);
+    return budgets;
+  }).handleError((error) {
+    return localStorage.getCachedBudgets(user.uid);
+  });
+});
+
+/// Current month budget provider
+final currentMonthBudgetProvider = FutureProvider<BudgetModel?>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
+  
+  final now = DateTime.now();
+  return ref.watch(firestoreServiceProvider).getBudgetForMonth(now.month, now.year);
 });
 
 /// Monthly summary provider
@@ -250,5 +302,163 @@ final monthlySummaryProvider = FutureProvider<Map<String, double>>((ref) async {
   return ref.watch(firestoreServiceProvider).getTransactionSummary(
     startDate: startOfMonth,
     endDate: endOfMonth,
+  );
+});
+
+// ==================== PERSONS PROVIDERS ====================
+
+/// Persons stream provider
+final personsProvider = StreamProvider<List<PersonModel>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  
+  return ref.watch(firestoreServiceProvider).streamPersons();
+});
+
+/// Person balances provider
+final personBalancesProvider = FutureProvider<List<PersonBalanceModel>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+  
+  return ref.watch(firestoreServiceProvider).calculatePersonBalances();
+});
+
+/// Settlements stream provider
+final settlementsProvider = StreamProvider<List<SettlementModel>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  
+  return ref.watch(firestoreServiceProvider).streamSettlements();
+});
+
+// ==================== PERSONS NOTIFIER ====================
+
+/// State for persons management
+class PersonsState {
+  final bool isLoading;
+  final String? error;
+  final bool isSuccess;
+
+  const PersonsState({
+    this.isLoading = false,
+    this.error,
+    this.isSuccess = false,
+  });
+
+  PersonsState copyWith({
+    bool? isLoading,
+    String? error,
+    bool? isSuccess,
+  }) {
+    return PersonsState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      isSuccess: isSuccess ?? this.isSuccess,
+    );
+  }
+}
+
+/// Notifier for managing persons
+class PersonsNotifier extends StateNotifier<PersonsState> {
+  final FirestoreService _firestoreService;
+  final Ref _ref;
+
+  PersonsNotifier(this._firestoreService, this._ref) : super(const PersonsState());
+
+  /// Add a new person
+  Future<void> addPerson({
+    required String name,
+    String? phone,
+    String? email,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+    try {
+      final user = _ref.read(currentUserProvider);
+      if (user == null) throw Exception('User not authenticated');
+
+      final person = PersonModel(
+        id: '',
+        userId: user.uid,
+        name: name,
+        phone: phone,
+        email: email,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _firestoreService.addPerson(person);
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Update a person
+  Future<void> updatePerson(PersonModel person) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+    try {
+      await _firestoreService.updatePerson(person.copyWith(
+        updatedAt: DateTime.now(),
+      ));
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Delete a person
+  Future<void> deletePerson(String personId) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+    try {
+      await _firestoreService.deletePerson(personId);
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Add settlement
+  Future<void> addSettlement({
+    required String personId,
+    required String personName,
+    required double amount,
+    required bool settledByMe,
+    String? note,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+    try {
+      final user = _ref.read(currentUserProvider);
+      if (user == null) throw Exception('User not authenticated');
+
+      final settlement = SettlementModel(
+        id: '',
+        userId: user.uid,
+        personId: personId,
+        personName: personName,
+        amount: amount,
+        settledByMe: settledByMe,
+        note: note,
+        date: DateTime.now(),
+        createdAt: DateTime.now(),
+      );
+
+      await _firestoreService.addSettlement(settlement);
+      _ref.invalidate(personBalancesProvider);
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void reset() {
+    state = const PersonsState();
+  }
+}
+
+/// Persons notifier provider
+final personsNotifierProvider = StateNotifierProvider<PersonsNotifier, PersonsState>((ref) {
+  return PersonsNotifier(
+    ref.watch(firestoreServiceProvider),
+    ref,
   );
 });

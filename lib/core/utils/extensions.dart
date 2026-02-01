@@ -28,6 +28,8 @@ extension DateTimeExtension on DateTime {
   
   String get formattedWithTime => DateFormat('MMM dd, yyyy HH:mm').format(this);
   
+  String get formatDate => DateFormat('MMM dd, yyyy').format(this);
+  
   String get dayMonth => DateFormat('dd MMM').format(this);
   
   String get monthYear => DateFormat('MMMM yyyy').format(this);

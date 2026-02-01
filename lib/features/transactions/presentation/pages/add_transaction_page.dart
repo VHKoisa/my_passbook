@@ -1,36 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/providers/providers.dart';
+import '../../../../core/services/firestore_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../shared/widgets/widgets.dart';
-import '../../../../shared/models/transaction_model.dart';
+import '../../../../shared/models/models.dart';
 
-class AddTransactionPage extends StatefulWidget {
+class AddTransactionPage extends ConsumerStatefulWidget {
   final String? initialType;
+  final TransactionModel? editTransaction;
 
-  const AddTransactionPage({super.key, this.initialType});
+  const AddTransactionPage({
+    super.key,
+    this.initialType,
+    this.editTransaction,
+  });
 
   @override
-  State<AddTransactionPage> createState() => _AddTransactionPageState();
+  ConsumerState<AddTransactionPage> createState() => _AddTransactionPageState();
 }
 
-class _AddTransactionPageState extends State<AddTransactionPage> {
+class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _noteController = TextEditingController();
 
   late TransactionType _selectedType;
-  String? _selectedCategoryId;
+  CategoryModel? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedType = widget.initialType == 'income'
-        ? TransactionType.income
-        : TransactionType.expense;
+    _isEditing = widget.editTransaction != null;
+    
+    if (_isEditing) {
+      final t = widget.editTransaction!;
+      _selectedType = t.type;
+      _amountController.text = t.amount.toString();
+      _descriptionController.text = t.description ?? '';
+      _noteController.text = t.note ?? '';
+      _selectedDate = t.date;
+    } else {
+      _selectedType = widget.initialType == 'income'
+          ? TransactionType.income
+          : TransactionType.expense;
+    }
   }
 
   @override
@@ -39,6 +61,48 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _descriptionController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkBudgetAlert(TransactionModel transaction) async {
+    try {
+      final notificationService = ref.read(notificationServiceProvider);
+      final settings = notificationService.settings;
+      
+      if (!settings.budgetAlerts) return;
+
+      // Get budgets for this category
+      final budgets = ref.read(budgetsProvider).valueOrNull ?? [];
+      final categoryBudget = budgets.where((b) => b.categoryId == transaction.categoryId).firstOrNull;
+      
+      if (categoryBudget == null) return;
+
+      // Calculate total spent this month for this category
+      final now = DateTime.now();
+      final transactions = ref.read(transactionsProvider).valueOrNull ?? [];
+      final monthlySpent = transactions
+          .where((t) =>
+              t.categoryId == transaction.categoryId &&
+              t.type == TransactionType.expense &&
+              t.date.month == now.month &&
+              t.date.year == now.year)
+          .fold<double>(0, (sum, t) => sum + t.amount);
+
+      // Add the new transaction amount
+      final totalSpent = monthlySpent + transaction.amount;
+      final percentage = ((totalSpent / categoryBudget.amount) * 100).round();
+
+      // Check if we should alert
+      if (percentage >= settings.budgetAlertThreshold) {
+        await notificationService.showBudgetAlert(
+          categoryName: transaction.categoryName,
+          spent: totalSpent,
+          budget: categoryBudget.amount,
+          percentage: percentage,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking budget alert: $e');
+    }
   }
 
   Future<void> _selectDate() async {
@@ -55,7 +119,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedCategoryId == null) {
+    if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a category')),
       );
@@ -64,21 +128,78 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
     setState(() => _isLoading = true);
 
-    // TODO: Save to Firebase
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final user = ref.read(currentUserProvider);
+      if (user == null) throw Exception('Not authenticated');
 
-    setState(() => _isLoading = false);
+      final transaction = TransactionModel(
+        id: _isEditing ? widget.editTransaction!.id : '',
+        userId: user.uid,
+        categoryId: _selectedCategory!.id,
+        categoryName: _selectedCategory!.name,
+        categoryIcon: _selectedCategory!.icon,
+        categoryColor: _selectedCategory!.color,
+        amount: double.parse(_amountController.text),
+        type: _selectedType,
+        description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        note: _noteController.text.isEmpty ? null : _noteController.text,
+        date: _selectedDate,
+        createdAt: _isEditing ? widget.editTransaction!.createdAt : DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
-    if (mounted) {
-      context.pop();
+      final firestoreService = ref.read(firestoreServiceProvider);
+      
+      if (_isEditing) {
+        await firestoreService.updateTransaction(transaction);
+      } else {
+        await firestoreService.addTransaction(transaction);
+      }
+
+      // Check budget alerts for expense transactions
+      if (_selectedType == TransactionType.expense) {
+        await _checkBudgetAlert(transaction);
+      }
+
+      // Invalidate providers to refresh data across the app
+      ref.invalidate(transactionsProvider);
+      ref.invalidate(recentTransactionsProvider);
+      ref.invalidate(monthlySummaryProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEditing ? 'Transaction updated' : 'Transaction added'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final categoriesAsync = _selectedType == TransactionType.expense
+        ? ref.watch(expenseCategoriesProvider)
+        : ref.watch(incomeCategoriesProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.addTransaction),
+        title: Text(_isEditing ? 'Edit Transaction' : AppStrings.addTransaction),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -94,7 +215,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               // Type Selector
               _TypeSelector(
                 selectedType: _selectedType,
-                onChanged: (type) => setState(() => _selectedType = type),
+                onChanged: (type) {
+                  setState(() {
+                    _selectedType = type;
+                    _selectedCategory = null;
+                  });
+                },
               ),
               const SizedBox(height: 24),
 
@@ -107,9 +233,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
               // Category Selector
               _CategorySelector(
-                type: _selectedType,
-                selectedCategoryId: _selectedCategoryId,
-                onChanged: (id) => setState(() => _selectedCategoryId = id),
+                categoriesAsync: categoriesAsync,
+                selectedCategory: _selectedCategory,
+                onChanged: (category) => setState(() => _selectedCategory = category),
               ),
               const SizedBox(height: 16),
 
@@ -141,7 +267,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
               // Save Button
               CustomButton(
-                text: AppStrings.save,
+                text: _isEditing ? 'Update' : AppStrings.save,
                 onPressed: _saveTransaction,
                 isLoading: _isLoading,
               ),
@@ -314,35 +440,42 @@ class _AmountField extends StatelessWidget {
 }
 
 class _CategorySelector extends StatelessWidget {
-  final TransactionType type;
-  final String? selectedCategoryId;
-  final ValueChanged<String> onChanged;
+  final AsyncValue<List<CategoryModel>> categoriesAsync;
+  final CategoryModel? selectedCategory;
+  final ValueChanged<CategoryModel> onChanged;
 
   const _CategorySelector({
-    required this.type,
-    required this.selectedCategoryId,
+    required this.categoriesAsync,
+    required this.selectedCategory,
     required this.onChanged,
   });
 
+  IconData _getIconFromString(String iconName) {
+    final iconMap = {
+      'restaurant': Icons.restaurant,
+      'directions_car': Icons.directions_car,
+      'shopping_bag': Icons.shopping_bag,
+      'movie': Icons.movie,
+      'home': Icons.home,
+      'medical_services': Icons.medical_services,
+      'school': Icons.school,
+      'flight': Icons.flight,
+      'subscriptions': Icons.subscriptions,
+      'attach_money': Icons.attach_money,
+      'account_balance_wallet': Icons.account_balance_wallet,
+      'work': Icons.work,
+      'card_giftcard': Icons.card_giftcard,
+      'trending_up': Icons.trending_up,
+      'more_horiz': Icons.more_horiz,
+      'receipt_long': Icons.receipt_long,
+      'local_hospital': Icons.local_hospital,
+      'laptop': Icons.laptop,
+    };
+    return iconMap[iconName] ?? Icons.category;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Sample categories - will be replaced with actual data
-    final categories = type == TransactionType.expense
-        ? [
-            {'id': 'food', 'name': 'Food & Dining', 'icon': Icons.restaurant},
-            {'id': 'transport', 'name': 'Transportation', 'icon': Icons.directions_car},
-            {'id': 'shopping', 'name': 'Shopping', 'icon': Icons.shopping_bag},
-            {'id': 'entertainment', 'name': 'Entertainment', 'icon': Icons.movie},
-            {'id': 'bills', 'name': 'Bills & Utilities', 'icon': Icons.receipt_long},
-            {'id': 'health', 'name': 'Health', 'icon': Icons.local_hospital},
-          ]
-        : [
-            {'id': 'salary', 'name': 'Salary', 'icon': Icons.account_balance_wallet},
-            {'id': 'freelance', 'name': 'Freelance', 'icon': Icons.laptop},
-            {'id': 'investments', 'name': 'Investments', 'icon': Icons.trending_up},
-            {'id': 'gifts', 'name': 'Gifts', 'icon': Icons.card_giftcard},
-          ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -351,47 +484,74 @@ class _CategorySelector extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: categories.map((cat) {
-            final isSelected = selectedCategoryId == cat['id'];
-            final color = AppColors.categoryColors[
-                categories.indexOf(cat) % AppColors.categoryColors.length];
-
-            return GestureDetector(
-              onTap: () => onChanged(cat['id'] as String),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? color : AppColors.background,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? color : AppColors.divider,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+        categoriesAsync.when(
+          data: (categories) {
+            if (categories.isEmpty) {
+              return Center(
+                child: Column(
                   children: [
-                    Icon(
-                      cat['icon'] as IconData,
-                      size: 18,
-                      color: isSelected ? Colors.white : color,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      cat['name'] as String,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
+                    const Text('No categories found.'),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () async {
+                        // Initialize default categories
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user != null) {
+                          await FirestoreService().initializeDefaultCategories(user.uid);
+                        }
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create Default Categories'),
                     ),
                   ],
                 ),
-              ),
+              );
+            }
+
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: categories.map((category) {
+                final isSelected = selectedCategory?.id == category.id;
+                final color = Color(category.color);
+
+                return GestureDetector(
+                  onTap: () => onChanged(category),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? color : AppColors.background,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? color : AppColors.divider,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getIconFromString(category.icon),
+                          size: 18,
+                          color: isSelected ? Colors.white : color,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          category.name,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Text('Error loading categories: $error'),
         ),
       ],
     );

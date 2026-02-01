@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/providers/providers.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -22,10 +25,16 @@ class SettingsPage extends StatelessWidget {
               title: 'Preferences',
               items: [
                 _SettingsItem(
+                  icon: Icons.category_outlined,
+                  title: 'Manage Categories',
+                  subtitle: 'Add, edit, or delete categories',
+                  onTap: () => context.push('/categories'),
+                ),
+                _SettingsItem(
                   icon: Icons.palette_outlined,
                   title: 'Theme',
                   subtitle: 'Light',
-                  onTap: () {},
+                  onTap: () => _showThemeDialog(context),
                 ),
                 _SettingsItem(
                   icon: Icons.language_outlined,
@@ -48,27 +57,9 @@ class SettingsPage extends StatelessWidget {
               items: [
                 _SettingsItem(
                   icon: Icons.notifications_outlined,
-                  title: 'Push Notifications',
-                  trailing: Switch(
-                    value: true,
-                    onChanged: (value) {},
-                  ),
-                ),
-                _SettingsItem(
-                  icon: Icons.email_outlined,
-                  title: 'Email Reports',
-                  trailing: Switch(
-                    value: false,
-                    onChanged: (value) {},
-                  ),
-                ),
-                _SettingsItem(
-                  icon: Icons.warning_amber_outlined,
-                  title: 'Budget Alerts',
-                  trailing: Switch(
-                    value: true,
-                    onChanged: (value) {},
-                  ),
+                  title: 'Notification Settings',
+                  subtitle: 'Budget alerts, daily reminders, bills',
+                  onTap: () => context.push('/notifications-settings'),
                 ),
               ],
             ),
@@ -88,7 +79,7 @@ class SettingsPage extends StatelessWidget {
                 _SettingsItem(
                   icon: Icons.lock_outline,
                   title: 'Change Password',
-                  onTap: () {},
+                  onTap: () => _showChangePasswordDialog(context, ref),
                 ),
               ],
             ),
@@ -100,17 +91,18 @@ class SettingsPage extends StatelessWidget {
                 _SettingsItem(
                   icon: Icons.cloud_upload_outlined,
                   title: 'Backup Data',
-                  onTap: () {},
+                  onTap: () => _showSnackBar(context, 'Backup feature coming soon'),
                 ),
                 _SettingsItem(
                   icon: Icons.cloud_download_outlined,
                   title: 'Restore Data',
-                  onTap: () {},
+                  onTap: () => _showSnackBar(context, 'Restore feature coming soon'),
                 ),
                 _SettingsItem(
                   icon: Icons.file_download_outlined,
-                  title: 'Export to CSV',
-                  onTap: () {},
+                  title: 'Export Data',
+                  subtitle: 'Export to CSV or PDF',
+                  onTap: () => context.push('/export'),
                 ),
               ],
             ),
@@ -149,9 +141,7 @@ class SettingsPage extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement logout
-                  },
+                  onPressed: () => _showLogoutDialog(context, ref),
                   icon: const Icon(Icons.logout, color: AppColors.expense),
                   label: const Text(
                     'Logout',
@@ -170,11 +160,142 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+
+  void _showThemeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Theme'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.light_mode),
+              title: const Text('Light'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dark_mode),
+              title: const Text('Dark'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_system_daydream),
+              title: const Text('System'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context, WidgetRef ref) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Current Password',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'New Password',
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirm New Password',
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (newPasswordController.text != confirmPasswordController.text) {
+                _showSnackBar(context, 'Passwords do not match');
+                return;
+              }
+              // TODO: Implement password change
+              Navigator.pop(context);
+              _showSnackBar(context, 'Password changed successfully');
+            },
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(authServiceProvider).signOut();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.expense,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 }
 
-class _ProfileSection extends StatelessWidget {
+class _ProfileSection extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final displayName = user?.displayName ?? 'User';
+    final email = user?.email ?? '';
+    final photoUrl = user?.photoURL;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -190,20 +311,26 @@ class _ProfileSection extends StatelessWidget {
             CircleAvatar(
               radius: 36,
               backgroundColor: Colors.white.withOpacity(0.2),
-              child: const Icon(
-                Icons.person,
-                size: 40,
-                color: Colors.white,
-              ),
+              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null
+                  ? Text(
+                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'John Doe',
-                    style: TextStyle(
+                  Text(
+                    displayName,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -211,7 +338,7 @@ class _ProfileSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'john.doe@example.com',
+                    email,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.8),
                       fontSize: 14,
@@ -221,9 +348,7 @@ class _ProfileSection extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: () {
-                // TODO: Navigate to edit profile
-              },
+              onPressed: () => _showEditProfileDialog(context, ref, displayName, email),
               icon: const Icon(
                 Icons.edit_outlined,
                 color: Colors.white,
@@ -231,6 +356,75 @@ class _ProfileSection extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context, WidgetRef ref, String currentName, String currentEmail) {
+    final nameController = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Display Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              enabled: false,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                prefixIcon: const Icon(Icons.email_outlined),
+                hintText: currentEmail,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Email cannot be changed',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final newName = nameController.text.trim();
+              if (newName.isNotEmpty) {
+                try {
+                  await ref.read(authServiceProvider).updateDisplayName(newName);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile updated successfully')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

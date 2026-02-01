@@ -77,6 +77,15 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Update display name only
+  Future<void> updateDisplayName(String displayName) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.updateDisplayName(displayName);
+      await user.reload();
+    }
+  }
+
   // Update user profile
   Future<void> updateProfile({String? displayName, String? photoURL}) async {
     final user = _auth.currentUser;
@@ -87,6 +96,7 @@ class AuthService {
       if (photoURL != null) {
         await user.updatePhotoURL(photoURL);
       }
+      await user.reload();
     }
   }
 

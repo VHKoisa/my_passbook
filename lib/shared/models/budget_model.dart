@@ -39,6 +39,47 @@ class BudgetModel extends Equatable {
   double get percentUsed => amount > 0 ? (spent / amount) * 100 : 0;
   bool get isOverBudget => spent > amount;
   bool get isNearLimit => percentUsed >= (alertThreshold * 100);
+  
+  // Convenience getters for monthly budgets
+  int get month => startDate.month;
+  int get year => startDate.year;
+
+  // Factory for creating a monthly budget
+  factory BudgetModel.monthly({
+    required String id,
+    required String userId,
+    String? categoryId,
+    String? categoryName,
+    required double amount,
+    double spent = 0,
+    required int month,
+    required int year,
+    bool isActive = true,
+    bool alertEnabled = true,
+    double alertThreshold = 0.8,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) {
+    final startDate = DateTime(year, month, 1);
+    final endDate = DateTime(year, month + 1, 0); // Last day of month
+    
+    return BudgetModel(
+      id: id,
+      userId: userId,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      amount: amount,
+      spent: spent,
+      period: BudgetPeriod.monthly,
+      startDate: startDate,
+      endDate: endDate,
+      isActive: isActive,
+      alertEnabled: alertEnabled,
+      alertThreshold: alertThreshold,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 
   factory BudgetModel.fromJson(Map<String, dynamic> json) {
     return BudgetModel(
@@ -71,6 +112,8 @@ class BudgetModel extends Equatable {
       'amount': amount,
       'spent': spent,
       'period': period.name,
+      'month': startDate.month,
+      'year': startDate.year,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'isActive': isActive,

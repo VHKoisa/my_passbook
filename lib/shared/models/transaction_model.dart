@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'split_model.dart';
 
 enum TransactionType { income, expense }
 
@@ -19,6 +20,13 @@ class TransactionModel extends Equatable {
   final String? receiptUrl;
   final bool isRecurring;
   final String? recurringId;
+  
+  // Split transaction fields
+  final bool isSplit;
+  final String? paidByPersonId; // null = paid by me
+  final String? paidByPersonName; // "Me" or person name
+  final List<SplitDetailModel> splits;
+  final double? myShare; // My portion of the split (for expense calculation)
 
   const TransactionModel({
     required this.id,
@@ -37,7 +45,19 @@ class TransactionModel extends Equatable {
     this.receiptUrl,
     this.isRecurring = false,
     this.recurringId,
+    this.isSplit = false,
+    this.paidByPersonId,
+    this.paidByPersonName,
+    this.splits = const [],
+    this.myShare,
   });
+
+  /// Get the effective amount for user's expense calculation
+  /// If split, returns only user's share; otherwise full amount
+  double get effectiveAmount => isSplit ? (myShare ?? amount) : amount;
+  
+  /// Check if the current user paid for this transaction
+  bool get paidByMe => paidByPersonId == null;
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
@@ -60,6 +80,14 @@ class TransactionModel extends Equatable {
       receiptUrl: json['receiptUrl'] as String?,
       isRecurring: json['isRecurring'] as bool? ?? false,
       recurringId: json['recurringId'] as String?,
+      isSplit: json['isSplit'] as bool? ?? false,
+      paidByPersonId: json['paidByPersonId'] as String?,
+      paidByPersonName: json['paidByPersonName'] as String?,
+      splits: (json['splits'] as List<dynamic>?)
+              ?.map((s) => SplitDetailModel.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [],
+      myShare: (json['myShare'] as num?)?.toDouble(),
     );
   }
 
@@ -81,6 +109,11 @@ class TransactionModel extends Equatable {
       'receiptUrl': receiptUrl,
       'isRecurring': isRecurring,
       'recurringId': recurringId,
+      'isSplit': isSplit,
+      'paidByPersonId': paidByPersonId,
+      'paidByPersonName': paidByPersonName,
+      'splits': splits.map((s) => s.toJson()).toList(),
+      'myShare': myShare,
     };
   }
 
@@ -101,6 +134,11 @@ class TransactionModel extends Equatable {
     String? receiptUrl,
     bool? isRecurring,
     String? recurringId,
+    bool? isSplit,
+    String? paidByPersonId,
+    String? paidByPersonName,
+    List<SplitDetailModel>? splits,
+    double? myShare,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -119,6 +157,11 @@ class TransactionModel extends Equatable {
       receiptUrl: receiptUrl ?? this.receiptUrl,
       isRecurring: isRecurring ?? this.isRecurring,
       recurringId: recurringId ?? this.recurringId,
+      isSplit: isSplit ?? this.isSplit,
+      paidByPersonId: paidByPersonId ?? this.paidByPersonId,
+      paidByPersonName: paidByPersonName ?? this.paidByPersonName,
+      splits: splits ?? this.splits,
+      myShare: myShare ?? this.myShare,
     );
   }
 
@@ -140,5 +183,10 @@ class TransactionModel extends Equatable {
         receiptUrl,
         isRecurring,
         recurringId,
+        isSplit,
+        paidByPersonId,
+        paidByPersonName,
+        splits,
+        myShare,
       ];
 }

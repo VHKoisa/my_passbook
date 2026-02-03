@@ -229,14 +229,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   icon: Icons.g_mobiledata,
                 ),
                 const SizedBox(height: 12),
-                CustomButton(
-                  text: AppStrings.continueWithApple,
-                  onPressed: () {
-                    // TODO: Implement Apple Sign In
-                  },
-                  isOutlined: true,
-                  icon: Icons.apple,
-                ),
+                // Only show Apple Sign-In on iOS/macOS or web
+                if (kIsWeb || (!kIsWeb && (Platform.isIOS || Platform.isMacOS)))
+                  CustomButton(
+                    text: AppStrings.continueWithApple,
+                    onPressed: _loginWithApple,
+                    isOutlined: true,
+                    isLoading: _isAppleLoading,
+                    icon: Icons.apple,
+                  ),
+                if (kIsWeb || (!kIsWeb && (Platform.isIOS || Platform.isMacOS)))
+                  const SizedBox(height: 12),
                 const SizedBox(height: 32),
 
                 // Sign Up Link

@@ -84,7 +84,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
+            color: AppColors.success.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -104,7 +104,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         Text(
           'We\'ve sent a password reset link to:',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.center,
         ),
@@ -119,7 +119,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         Text(
           'Please check your inbox and follow the instructions to reset your password.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.center,
         ),
@@ -149,7 +149,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -170,7 +170,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           Text(
             'No worries! Enter your email address and we\'ll send you a link to reset your password.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),

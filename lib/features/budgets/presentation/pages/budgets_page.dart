@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/providers/providers.dart';
@@ -188,8 +187,8 @@ class _OverallBudgetCard extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: percentUsed > 0.8
-                                ? AppColors.expense.withOpacity(0.1)
-                                : AppColors.income.withOpacity(0.1),
+                                ? AppColors.expense.withValues(alpha: 0.1)
+                                : AppColors.income.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -279,7 +278,7 @@ class _OverallBudgetCard extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.expense.withOpacity(0.1),
+                          color: AppColors.expense.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -519,7 +518,7 @@ class _CategoryBudgetCard extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.1),
+            color: colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(Icons.category, color: colorScheme.primary),

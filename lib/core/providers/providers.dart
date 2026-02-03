@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
-import '../services/connectivity_service.dart';
 import '../../shared/models/models.dart';
 import '../../main.dart' show localStorageServiceProvider;
 
@@ -123,6 +122,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final credential = await _authService.signInWithGoogle();
+
+      // Create/update user document in Firestore
+      if (credential.user != null) {
+        final existingUser = await _firestoreService.getUser(credential.user!.uid);
+        
+        if (existingUser == null) {
+          // New user - create document and initialize categories
+          final user = UserModel(
+            id: credential.user!.uid,
+            email: credential.user!.email ?? '',
+            displayName: credential.user!.displayName,
+            photoUrl: credential.user!.photoURL,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await _firestoreService.saveUser(user);
+          await _firestoreService.initializeDefaultCategories(credential.user!.uid);
+        }
+      }
+
+      state = state.copyWith(isLoading: false, isSuccess: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Sign in with Apple
+  Future<void> signInWithApple() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final credential = await _authService.signInWithApple();
 
       // Create/update user document in Firestore
       if (credential.user != null) {

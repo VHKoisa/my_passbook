@@ -318,7 +318,7 @@ class _ProfileSection extends ConsumerWidget {
           children: [
             CircleAvatar(
               radius: 36,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
               child: photoUrl == null
                   ? Text(
@@ -350,7 +350,7 @@ class _ProfileSection extends ConsumerWidget {
                   Text(
                     email,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),

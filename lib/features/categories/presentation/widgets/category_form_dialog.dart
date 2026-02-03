@@ -119,7 +119,7 @@ class _CategoryFormDialogState extends State<CategoryFormDialog> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: previewColor.withOpacity(0.15),
+                      color: previewColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
@@ -258,7 +258,7 @@ class _TypeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? color.withOpacity(0.15)
+              ? color.withValues(alpha: 0.15)
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

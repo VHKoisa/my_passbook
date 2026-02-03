@@ -351,7 +351,7 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onSelected(),
-      selectedColor: effectiveColor.withOpacity(0.2),
+      selectedColor: effectiveColor.withValues(alpha: 0.2),
       checkmarkColor: effectiveColor,
     );
   }
@@ -451,7 +451,7 @@ class _TransactionTile extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -467,7 +467,7 @@ class _TransactionTile extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 margin: const EdgeInsets.only(left: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: AppColors.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -641,7 +641,7 @@ class _TransactionDetailsSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(

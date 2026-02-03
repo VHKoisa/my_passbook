@@ -64,7 +64,7 @@ class OfflineIndicator extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: AppColors.warning.withOpacity(0.1),
+            color: AppColors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(

@@ -45,9 +45,9 @@ class NotificationService {
     if (!kIsWeb) {
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
+        requestAlertPermission: false, // We'll request manually
+        requestBadgePermission: false,
+        requestSoundPermission: false,
       );
 
       const initSettings = InitializationSettings(
@@ -72,6 +72,14 @@ class NotificationService {
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
             ?.createNotificationChannel(channel);
+        
+        // Request notification permission for Android 13+ (API 33+)
+        await requestPermissions();
+      }
+      
+      // Request iOS permissions
+      if (Platform.isIOS) {
+        await requestPermissions();
       }
     }
 

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +23,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
 
   @override
   void dispose() {
@@ -73,6 +77,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } finally {
       if (mounted) {
         setState(() => _isGoogleLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loginWithApple() async {
+    setState(() => _isAppleLoading = true);
+    
+    try {
+      await ref.read(authNotifierProvider.notifier).signInWithApple();
+      // Router will handle navigation based on auth state
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
       }
     }
   }

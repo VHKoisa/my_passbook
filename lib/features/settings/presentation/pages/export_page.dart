@@ -180,7 +180,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
 
             // Info Text
             Card(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.info.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -386,7 +386,7 @@ class _ExportTypeCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : null,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : null,
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey.shade300,
             width: isSelected ? 2 : 1,

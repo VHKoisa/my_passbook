@@ -138,7 +138,7 @@ class IconPickerWidget extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? selectedColor.withOpacity(0.15)
+                    ? selectedColor.withValues(alpha: 0.15)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(

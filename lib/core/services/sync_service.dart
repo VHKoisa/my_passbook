@@ -4,7 +4,6 @@ import 'local_storage_service.dart';
 import 'firestore_service.dart';
 import 'connectivity_service.dart';
 import '../providers/providers.dart';
-import '../../main.dart' show localStorageServiceProvider;
 
 /// Provider for local storage service
 final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
